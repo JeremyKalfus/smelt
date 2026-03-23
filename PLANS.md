@@ -9,6 +9,21 @@ Execution policy:
 - stop and fix on the first benchmark-compatibility or leakage failure
 - no silent fallbacks
 
+## track separation
+
+All operative artifacts must stay in one of two explicit tracks:
+
+- `exact-upstream`
+  - configs: `configs/exact-upstream/`
+  - docs: `docs/exact-upstream/`
+  - result tables: `results/exact-upstream/`
+- `research-extension`
+  - configs: `configs/research-extension/`
+  - docs: `docs/research-extension/`
+  - result tables: `results/research-extension/`
+
+Do not mix these names in config files, docs, run names, or table exports.
+
 ## upstream benchmark contract
 
 Verified against the official upstream repo at `.reference/smellnet_upstream/` plus the hosted dataset tree it references.
@@ -35,13 +50,15 @@ Verified against the official upstream repo at `.reference/smellnet_upstream/` p
 - upstream contrastive mode is not "pretrain then supervised fine-tune"
   - it is closed-world gc-ms retrieval against a full gc-ms gallery
   - this is benchmark-critical and must be reproduced before any new training regime
+- upstream gc-ms contrastive mode is a retrieval-style benchmark path, not equivalent to the planned `research-extension` pretrain-then-finetune supervised classifier
+- every config name, run name, and result table name must make that distinction obvious
 - upstream metrics are:
   - `acc@1`, `acc@5`
   - `precision_macro`, `recall_macro`, `f1_macro`
   - `confusion_matrix`
   - optional per-category `acc@1` and `acc@5`
 - upstream `--real-test-dir` is loaded but unused in `run.py`
-- shipped data does not expose clean day ids in the benchmark split. true leave-one-day-out is therefore not available from the public base split without extra metadata.
+- shipped data does not expose proven public day ids in the benchmark split. use only a file-heldout robustness proxy unless public day/session metadata is later proven.
 
 ## conflict handling
 
@@ -56,8 +73,8 @@ Upstream compatibility reality:
 Resolution:
 
 - `smelt` will implement two distinct paths
-- `baseline.upstream_retrieval`: exact-compatible benchmark sanity path
-- `research.pretrain_finetune`: explicit experimental deviation, documented as such in configs and reports
+- `exact-upstream/upstream_retrieval`: exact-compatible benchmark sanity path
+- `research-extension/pretrain_finetune`: explicit experimental deviation, documented as such in configs and reports
 
 ## safe mirror vs reimplement
 
@@ -74,17 +91,34 @@ Too entangled or unsafe to mirror directly:
 
 - implicit gc-ms row-order alignment
 - unused but required `real-test-dir` handling
-- mixture pipeline calibration on official test data
-- dataset-specific filename parsing and truncation from `run_mixture.py`
+- all mixture pipeline codepaths in the first implementation pass
 - collection/preprocessing logic that depends on column position or `state.txt`
 
 ## hard stop rules
 
 - stop if train/test file hashes overlap
 - stop if class vocab differs across split manifest and gc-ms anchor table
+- stop if `artifacts/manifests/gcms_class_map.json` is missing for any gc-ms run
+- stop if the gc-ms class map is not bijective for the classes in scope
+- stop if there are missing classes, duplicate anchors, or ambiguous gc-ms mappings
 - stop if standardization touches official test data during fitting
+- stop if split parity is wrong
+- stop if preprocessing parity is wrong
+- stop if metric/report parity is wrong
+- stop if the training/eval pipeline is unstable
 - stop if any ticket changes benchmark semantics without a named config-level deviation
 - stop if a validation command fails
+
+## baseline gate
+
+Do not proceed to any `research-extension` ticket until the `exact-upstream` sanity path is verified end to end.
+
+Verification means:
+
+- split parity passes
+- preprocessing parity passes
+- metric/report parity passes
+- the exact-upstream training/eval path runs stably
 
 ## shared validation commands
 
@@ -96,26 +130,27 @@ These are the exact command contracts the implementation tickets will make runna
 - `pytest -q`
 - `python -m compileall src tests scripts`
 - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/smellnet_base.json`
-- `python -m smelt.training.run --config configs/base/e0_transformer_upstream.yaml`
-- `python -m smelt.training.run --config configs/base/f1_cnn_upstream.yaml`
-- `python -m smelt.training.run --config configs/research/e1_fit_gcms.yaml`
-- `python -m smelt.evaluation.compare --inputs results/runs --out results/tables/base_comparison.csv`
+- `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/gcms_class_map.json --verify-gcms-bijection`
+- `python -m smelt.training.run --config configs/exact-upstream/e0_transformer_upstream.yaml`
+- `python -m smelt.training.run --config configs/exact-upstream/f1_cnn_upstream.yaml`
+- `python -m smelt.training.run --config configs/research-extension/e1_fit_gcms.yaml`
+- `python -m smelt.evaluation.compare --inputs results/exact-upstream/runs --out results/exact-upstream/tables/base_comparison.csv`
 
 ## experiment registry and order
 
-- `e0`: upstream-compatible transformer sanity run, `w=100`, `g=25`, gc-ms retrieval on
-- `e0b`: upstream-compatible transformer sanity run, `w=100`, `g=25`, gc-ms retrieval off
-- `f1`: hardened cnn fallback on the same benchmark path
-- `e1`: fit-gcms main model, fused raw + diff input
-- `a1`: remove gc-ms pretraining from `e1`
-- `a2`: diff-only input
-- `a3`: raw-only input
-- `a4`: remove fft/hardening from the best `e1` variant if hardening is used
-- `e2`: fit-gcms + approved hardening knobs
+- `e0`: `exact-upstream` transformer sanity run, `w=100`, `g=25`, gc-ms retrieval on
+- `e0b`: `exact-upstream` transformer sanity run, `w=100`, `g=25`, gc-ms retrieval off
+- `f1`: `exact-upstream` hardened cnn fallback on the same benchmark path
+- `e1`: `research-extension` fit-gcms main model, fused raw + diff input
+- `a1`: `research-extension` remove gc-ms pretraining from `e1`
+- `a2`: `research-extension` diff-only input
+- `a3`: `research-extension` raw-only input
+- `a4`: `research-extension` remove fft/hardening from the best `e1` variant if hardening is used
+- `e2`: `research-extension` fit-gcms + approved hardening knobs
 - `f2`: optional two-model ensemble only if single-model runs stall below target
-- `r1`: robustness eval on best main model
-- `r2`: robustness eval on baseline/fallback
-- `e3`: full-budget rerun of the chosen best single model with a second seed
+- `r1`: file-heldout robustness proxy on best main model
+- `r2`: file-heldout robustness proxy on baseline/fallback
+- `e3`: `research-extension` full-budget rerun of the chosen best single model with a second seed
 
 ## success and pivot thresholds
 
@@ -160,11 +195,14 @@ These are the exact command contracts the implementation tickets will make runna
   - emits a manifest with 50 classes
   - confirms 5 train csvs/class and 1 test csv/class
   - fails loudly on overlap or schema drift
+  - emits `artifacts/manifests/gcms_class_map.json`
+  - fails loudly on any non-bijective class-anchor map
 - validate:
   - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/smellnet_base.json`
+  - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/gcms_class_map.json --verify-gcms-bijection`
   - `pytest -q tests/datasets/test_audit_base.py`
 - blockers: dataset missing or malformed
-- compatibility checkpoint: split contract matches upstream
+- compatibility checkpoint: split contract matches upstream exactly
 - leakage checkpoint: duplicate-hash audit passes
 
 ### t03 sensor loader and schema validator
@@ -204,6 +242,7 @@ These are the exact command contracts the implementation tickets will make runna
 - acceptance:
   - report includes `acc@1`, `acc@5`, macro precision/recall/f1, confusion matrix, per-category summary
   - retrieval evaluator supports closed-world gc-ms gallery scoring
+  - result schemas and filenames make `exact-upstream` retrieval vs `research-extension` pretrain-finetune distinction explicit
 - validate:
   - `pytest -q tests/evaluation/test_classification_metrics.py tests/evaluation/test_retrieval_metrics.py`
 - blockers: metric mismatch or naming drift
@@ -216,10 +255,14 @@ These are the exact command contracts the implementation tickets will make runna
 - scope: load gc-ms anchors with explicit class-name mapping instead of implicit row order, while preserving closed-world benchmark compatibility
 - acceptance:
   - anchor table, class vocab, and split manifest align exactly
+  - saves `artifacts/manifests/gcms_class_map.json`
   - code fails loudly on any missing or extra class
+  - code fails loudly on duplicate anchors or ambiguous mappings
+  - mapping is bijective for the classes in scope
 - validate:
   - `pytest -q tests/datasets/test_gcms_mapping.py`
   - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/smellnet_base.json`
+  - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/gcms_class_map.json --verify-gcms-bijection`
 - blockers: class-name mismatch between sensor split and gc-ms csv
 - compatibility checkpoint: closed-world gallery matches the 50-class benchmark
 - leakage checkpoint: mapping is explicit and auditable
@@ -232,11 +275,12 @@ These are the exact command contracts the implementation tickets will make runna
   - config-driven run works end to end
   - `g=25` beats `g=0`
   - result tables include upstream-compatible metrics
+  - result names make retrieval mode explicit
 - validate:
-  - `python -m smelt.training.run --config configs/base/e0_transformer_upstream.yaml`
-  - `python -m smelt.training.run --config configs/base/e0b_transformer_upstream_no_gcms.yaml`
-  - `python -m smelt.evaluation.compare --inputs results/runs --out results/tables/e0_transformer.csv`
-- blockers: parity gap > 5 acc@1 from the audited upstream reference mode
+  - `python -m smelt.training.run --config configs/exact-upstream/e0_transformer_upstream.yaml`
+  - `python -m smelt.training.run --config configs/exact-upstream/e0b_transformer_upstream_no_gcms.yaml`
+  - `python -m smelt.evaluation.compare --inputs results/exact-upstream/runs --out results/exact-upstream/tables/e0_transformer.csv`
+- blockers: parity gap > 5 acc@1 from the audited upstream reference mode, or unstable training/eval pipeline
 - compatibility checkpoint: exact-compatible mode confirmed
 - leakage checkpoint: no validation/test reuse
 
@@ -248,8 +292,8 @@ These are the exact command contracts the implementation tickets will make runna
   - cnn runs on exact-compatible retrieval path
   - fallback result is reproducible and comparable to `e0`
 - validate:
-  - `python -m smelt.training.run --config configs/base/f1_cnn_upstream.yaml`
-  - `python -m smelt.evaluation.compare --inputs results/runs --out results/tables/f1_cnn.csv`
+  - `python -m smelt.training.run --config configs/exact-upstream/f1_cnn_upstream.yaml`
+  - `python -m smelt.evaluation.compare --inputs results/exact-upstream/runs --out results/exact-upstream/tables/f1_cnn.csv`
 - blockers: cnn path diverges from shared data/eval contract
 - compatibility checkpoint: same preprocessing and metrics as `e0`
 - leakage checkpoint: inherited from previous tickets
@@ -257,7 +301,7 @@ These are the exact command contracts the implementation tickets will make runna
 ### t09 fused raw + diff dataset path
 
 - depends on: `t04`, `t06`
-- scope: add a research-only input path that aligns raw and `g=25` diff windows and concatenates them by channel
+- scope: add a `research-extension`-only input path that aligns raw and `g=25` diff windows and concatenates them by channel
 - acceptance:
   - raw+diff fusion is explicit and tested
   - `a2` diff-only and `a3` raw-only reuse the same data contract
@@ -270,13 +314,13 @@ These are the exact command contracts the implementation tickets will make runna
 ### t10 inception-style backbone
 
 - depends on: `t09`
-- scope: implement the fit-gcms backbone with `forward_features()` and shape checks
+- scope: implement the `research-extension` fit-gcms backbone with `forward_features()` and shape checks
 - acceptance:
   - backbone trains on a smoke batch
   - feature extractor output shape is stable
 - validate:
   - `pytest -q tests/models/test_inception_backbone.py`
-  - `python -m smelt.training.smoke --config configs/research/e1_fit_gcms.yaml`
+  - `python -m smelt.training.smoke --config configs/research-extension/e1_fit_gcms.yaml`
 - blockers: unstable shapes or failing smoke step
 - compatibility checkpoint: model is a new research path, not the exact-compatible baseline
 - leakage checkpoint: not applicable
@@ -284,30 +328,30 @@ These are the exact command contracts the implementation tickets will make runna
 ### t11 gc-ms pretrain + supervised fine-tune path
 
 - depends on: `t10`, `t06`
-- scope: implement the research path requested by the plan: gc-ms contrastive pretraining followed by supervised fine-tuning
+- scope: implement the `research-extension` path requested by the plan: gc-ms contrastive pretraining followed by supervised fine-tuning
 - acceptance:
   - pretrain and fine-tune stages are separate, resumable, and logged
   - `a1` no-pretrain ablation is supported by config only
 - validate:
-  - `python -m smelt.training.run --config configs/research/e1_fit_gcms.yaml`
-  - `python -m smelt.training.run --config configs/research/a1_fit_no_pretrain.yaml`
+  - `python -m smelt.training.run --config configs/research-extension/e1_fit_gcms.yaml`
+  - `python -m smelt.training.run --config configs/research-extension/a1_fit_no_pretrain.yaml`
 - blockers: pretrain artifacts cannot be loaded cleanly into fine-tuning
 - compatibility checkpoint: path is clearly labeled as a research deviation from upstream retrieval mode
 - leakage checkpoint: no test labels or anchors are used for tuning beyond the closed-world benchmark contract
 
-### t12 hardening, ablations, and robustness proxy
+### t12 hardening, ablations, and file-heldout robustness proxy
 
 - depends on: `t11`, `t08`
-- scope: add fft/noise/feature-dropout switches, run `a4`, and define the closest valid temporal-robustness proxy if true day ids remain unavailable
+- scope: add fft/noise/feature-dropout switches, run `a4`, and define the closest valid file-heldout robustness proxy
 - acceptance:
   - hardening knobs are binary and isolated
   - robustness protocol is documented and reproducible
   - `r1` and `r2` can be run without changing the official test split
 - validate:
-  - `python -m smelt.training.run --config configs/research/e2_fit_gcms_hardened.yaml`
-  - `python -m smelt.training.run --config configs/research/a4_no_hardening.yaml`
-  - `python -m smelt.evaluation.robustness --config configs/eval/r1_best_model.yaml`
-  - `python -m smelt.evaluation.robustness --config configs/eval/r2_baseline.yaml`
-- blockers: no defensible robustness grouping or hardening causes benchmark drift
+  - `python -m smelt.training.run --config configs/research-extension/e2_fit_gcms_hardened.yaml`
+  - `python -m smelt.training.run --config configs/research-extension/a4_no_hardening.yaml`
+  - `python -m smelt.evaluation.robustness --config configs/research-extension/r1_best_model.yaml`
+  - `python -m smelt.evaluation.robustness --config configs/exact-upstream/r2_baseline.yaml`
+- blockers: no defensible file-heldout grouping or hardening causes benchmark drift
 - compatibility checkpoint: official split metrics remain the primary report
 - leakage checkpoint: robustness grouping never reuses official test data for tuning
