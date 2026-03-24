@@ -190,20 +190,18 @@ These are the exact command contracts the implementation tickets will make runna
 ### t02 data manifest and split auditor
 
 - depends on: `t01`
-- scope: implement a base-split auditor that verifies class counts, file counts, schema, and duplicate hashes before training
+- scope: implement an exact-upstream base-split auditor that verifies structure, class counts, file counts, csv readability, and schema consistency before loaders or preprocessing land
 - acceptance:
-  - emits a manifest with 50 classes
-  - confirms 5 train csvs/class and 1 test csv/class
-  - fails loudly on overlap or schema drift
-  - emits `artifacts/manifests/gcms_class_map.json`
-  - fails loudly on any non-bijective class-anchor map
+  - emits a base manifest json with resolved root, split paths, class vocab, per-class file counts, per-file metadata, schema summary, and contract pass/fail state
+  - confirms 50 classes plus 5 train csvs/class and 1 test csv/class in `--strict-upstream` mode
+  - fails loudly on missing split dirs, class vocab mismatch, strict-count mismatch, unreadable csvs, or schema drift
+  - does not implement gc-ms mapping logic in this ticket
 - validate:
-  - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/smellnet_base.json`
-  - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/gcms_class_map.json --verify-gcms-bijection`
-  - `pytest -q tests/datasets/test_audit_base.py`
+  - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/smellnet_base.json --strict-upstream`
+  - `pytest -q`
 - blockers: dataset missing or malformed
 - compatibility checkpoint: split contract matches upstream exactly
-- leakage checkpoint: duplicate-hash audit passes
+- leakage checkpoint: not applicable in `t02` beyond split-structure verification
 
 ### t03 sensor loader and schema validator
 
