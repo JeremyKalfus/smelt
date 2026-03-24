@@ -9,3 +9,4 @@ dist/
 data/
 artifacts/
 checkpoints/
+*.egg-info/
