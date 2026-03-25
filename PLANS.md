@@ -206,16 +206,17 @@ These are the exact command contracts the implementation tickets will make runna
 ### t03 sensor loader and schema validator
 
 - depends on: `t02`
-- scope: implement deterministic loading for offline train/test splits with explicit column-name validation
+- scope: implement deterministic loading for offline train/test splits with explicit raw 12-column validation and preserved split/class/file identity
 - acceptance:
   - loader preserves file-level split
-  - loader drops only the six benchmark-filtered columns when requested
+  - loader preserves the raw 12-column sensor schema by default
+  - loader may expose validated benchmark-channel selection only as an explicit opt-in view, not as preprocessing
   - file ordering is deterministic
 - validate:
-  - `pytest -q tests/datasets/test_sensor_loader.py`
-  - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT"`
+  - `pytest -q`
+  - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/smellnet_base.json --strict-upstream`
 - blockers: inconsistent csv headers
-- compatibility checkpoint: six retained benchmark channels match upstream
+- compatibility checkpoint: raw 12-column order and split/file identities match upstream
 - leakage checkpoint: loader never mixes split roots
 
 ### t04 preprocessing parity: baseline subtraction, differencing, windowing, standardization

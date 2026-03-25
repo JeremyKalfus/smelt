@@ -4,6 +4,71 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+TRAIN_SPLIT = "offline_training"
+TEST_SPLIT = "offline_testing"
+SPLIT_NAMES = (TRAIN_SPLIT, TEST_SPLIT)
+RAW_SENSOR_COLUMNS = (
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG",
+    "Benzene",
+    "Temperature",
+    "Pressure",
+    "Humidity",
+    "Gas_Resistance",
+    "Altitude",
+)
+BENCHMARK_SENSOR_COLUMNS = (
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG",
+)
+
+
+@dataclass(slots=True)
+class SensorFileRecord:
+    split: str
+    class_name: str
+    relative_path: str
+    absolute_path: str
+    column_names: tuple[str, ...]
+    rows: tuple[tuple[float, ...], ...]
+
+    @property
+    def row_count(self) -> int:
+        return len(self.rows)
+
+    @property
+    def column_count(self) -> int:
+        return len(self.column_names)
+
+
+@dataclass(slots=True)
+class BaseSensorDataset:
+    resolved_data_root: str
+    raw_column_names: tuple[str, ...]
+    train_records: tuple[SensorFileRecord, ...]
+    test_records: tuple[SensorFileRecord, ...]
+
+    @property
+    def class_vocab(self) -> tuple[str, ...]:
+        class_names = {record.class_name for record in self.train_records}
+        class_names.update(record.class_name for record in self.test_records)
+        return tuple(sorted(class_names))
+
+    def records_for_split(self, split_name: str) -> tuple[SensorFileRecord, ...]:
+        if split_name == TRAIN_SPLIT:
+            return self.train_records
+        if split_name == TEST_SPLIT:
+            return self.test_records
+        raise ValueError(f"unknown split: {split_name}")
+
 
 @dataclass(slots=True)
 class FileMetadata:

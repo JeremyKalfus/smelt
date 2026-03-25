@@ -11,6 +11,8 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from .contracts import (
+    TEST_SPLIT,
+    TRAIN_SPLIT,
     AuditManifest,
     BenchmarkContractResult,
     FileMetadata,
@@ -18,8 +20,6 @@ from .contracts import (
     SchemaSummary,
 )
 
-TRAIN_SPLIT = "offline_training"
-TEST_SPLIT = "offline_testing"
 STRICT_CLASS_COUNT = 50
 STRICT_TRAIN_FILES = 5
 STRICT_TEST_FILES = 1
