@@ -25,6 +25,10 @@ class SensorSchemaError(SensorLoaderError):
     """raised when a sensor csv drifts from the expected schema."""
 
 
+class SensorDataError(SensorLoaderError):
+    """raised when a sensor csv contains malformed sensor rows."""
+
+
 def load_base_sensor_dataset(data_root: Path) -> BaseSensorDataset:
     resolved_root = data_root.expanduser().resolve()
     split_records = {
@@ -80,7 +84,7 @@ def load_sensor_file(
                     )
                 rows.append(parse_numeric_row(row, csv_path, row_index))
             if not rows:
-                raise SensorSchemaError(f"csv file has no data rows: {csv_path}")
+                raise SensorDataError(f"csv file has no data rows: {csv_path}")
     except OSError as exc:
         raise SensorLoaderError(f"unable to read csv file {csv_path}: {exc}") from exc
     except UnicodeError as exc:
@@ -151,6 +155,10 @@ def validate_requested_columns(
     available_columns: Sequence[str],
     requested_columns: Sequence[str],
 ) -> None:
+    if not requested_columns:
+        raise SensorSchemaError("at least one sensor column must be requested")
+    if len(set(requested_columns)) != len(tuple(requested_columns)):
+        raise SensorSchemaError(f"requested columns contain duplicates: {list(requested_columns)}")
     missing_columns = [
         column_name for column_name in requested_columns if column_name not in available_columns
     ]
@@ -185,7 +193,7 @@ def parse_numeric_row(
         try:
             values.append(float(value))
         except ValueError as exc:
-            raise SensorSchemaError(
+            raise SensorDataError(
                 f"non-numeric value in {csv_path}: "
                 f"row {row_index}, column {column_index}, value={value!r}"
             ) from exc
