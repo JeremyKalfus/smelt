@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from smelt.datasets import load_base_sensor_dataset
@@ -21,6 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--diff-period", type=int, default=25)
     parser.add_argument("--window-size", type=int, default=100)
     parser.add_argument("--stride", type=int, default=None)
+    parser.add_argument("--emit", type=Path, default=None)
     return parser.parse_args()
 
 
@@ -52,21 +54,29 @@ def main() -> int:
     standardized_test = apply_window_standardizer(test_windows, stats)
 
     retained_columns = list(train_records[0].column_names)
-    print(f"resolved_data_root: {dataset.resolved_data_root}")
-    print(f"retained_columns: {retained_columns}")
-    print(f"retained_channel_count: {len(retained_columns)}")
-    print(f"differencing_period: {args.diff_period}")
-    print(f"window_size: {args.window_size}")
-    print(f"stride: {train_windows.stride}")
-    print(f"train_record_count: {len(train_records)}")
-    print(f"test_record_count: {len(test_records)}")
-    print(f"train_window_count: {train_windows.window_count}")
-    print(f"test_window_count: {test_windows.window_count}")
-    print(
-        f"standardization_shape: ({stats.window_count * stats.window_size}, {stats.feature_count})"
-    )
-    print(f"train_standardized_window_count: {standardized_train.window_count}")
-    print(f"test_standardized_window_count: {standardized_test.window_count}")
+    summary = {
+        "resolved_data_root": dataset.resolved_data_root,
+        "retained_columns": retained_columns,
+        "retained_channel_count": len(retained_columns),
+        "differencing_period": args.diff_period,
+        "window_size": args.window_size,
+        "stride": train_windows.stride,
+        "train_record_count": len(train_records),
+        "test_record_count": len(test_records),
+        "train_window_count": train_windows.window_count,
+        "test_window_count": test_windows.window_count,
+        "standardization_shape": [
+            stats.window_count * stats.window_size,
+            stats.feature_count,
+        ],
+        "train_standardized_window_count": standardized_train.window_count,
+        "test_standardized_window_count": standardized_test.window_count,
+    }
+    if args.emit is not None:
+        args.emit.parent.mkdir(parents=True, exist_ok=True)
+        args.emit.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    for key, value in summary.items():
+        print(f"{key}: {value}")
     return 0
 
 
