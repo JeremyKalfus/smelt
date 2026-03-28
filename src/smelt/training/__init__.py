@@ -1,1 +1,1 @@
-"""training package scaffold."""
+"""training package."""

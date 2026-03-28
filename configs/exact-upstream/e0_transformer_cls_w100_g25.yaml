@@ -1,0 +1,24 @@
+track: exact-upstream
+experiment_name: e0_transformer_cls_w100_g25
+data_root: ${SMELT_DATA_ROOT}
+output_root: results/runs
+category_map_path: configs/exact-upstream/category_map.json
+preprocessing_summary_path: artifacts/methods/t04_preprocessing_smoke.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+gcms_class_map_manifest_path: artifacts/manifests/gcms_class_map.json
+seed: 42
+device: auto
+epochs: 5
+batch_size: 64
+lr: 0.001
+weight_decay: 0.0
+grad_clip: 1.0
+diff_period: 25
+window_size: 100
+stride: null
+num_workers: 0
+model:
+  model_dim: 256
+  num_heads: 8
+  num_layers: 3
+  dropout: 0.1
