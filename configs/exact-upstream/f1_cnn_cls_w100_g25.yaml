@@ -1,0 +1,28 @@
+batch_size: 32
+category_map_path: configs/exact-upstream/category_map.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+data_root: ${SMELT_DATA_ROOT}
+device: auto
+diff_period: 25
+epochs: 90
+experiment_name: f1_cnn_cls_w100_g25
+gcms_class_map_manifest_path: artifacts/manifests/gcms_class_map.json
+grad_clip: 1.0
+lr: 0.003
+model_name: cnn
+model:
+  channels:
+    - 64
+    - 128
+    - 256
+  kernel_size: 5
+  dropout: 0.2
+  use_batchnorm: true
+num_workers: 0
+output_root: results/runs
+preprocessing_summary_path: artifacts/methods/t04_preprocessing_smoke.json
+seed: 42
+stride: null
+track: exact-upstream
+weight_decay: 0.0
+window_size: 100

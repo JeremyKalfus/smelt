@@ -1,4 +1,4 @@
-"""exact-upstream transformer baseline runner."""
+"""exact-upstream classification runner."""
 
 from __future__ import annotations
 
@@ -25,11 +25,12 @@ from smelt.datasets import (
     write_base_class_vocab_manifest,
 )
 from smelt.evaluation import (
+    ClassificationMetrics,
     compute_classification_metrics,
     export_classification_report,
     load_category_mapping,
 )
-from smelt.models import ExactUpstreamTransformerClassifier
+from smelt.models import ExactUpstreamCnnClassifier, ExactUpstreamTransformerClassifier
 from smelt.preprocessing import (
     EXACT_UPSTREAM_DROPPED_COLUMNS,
     apply_window_standardizer,
@@ -50,6 +51,14 @@ class TransformerModelConfig:
     num_heads: int = 8
     num_layers: int = 3
     dropout: float = 0.1
+
+
+@dataclass(slots=True)
+class CnnModelConfig:
+    channels: tuple[int, ...] = (64, 128, 256)
+    kernel_size: int = 5
+    dropout: float = 0.2
+    use_batchnorm: bool = True
 
 
 @dataclass(slots=True)
@@ -74,7 +83,9 @@ class ExactUpstreamRunConfig:
     window_size: int
     stride: int | None
     num_workers: int
-    model: TransformerModelConfig
+    shuffle_train_labels: bool
+    model_name: str
+    model: TransformerModelConfig | CnnModelConfig
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -99,6 +110,15 @@ class TrainingHistoryRow:
     epoch: int
     train_loss: float
     train_acc_at_1: float
+
+
+@dataclass(slots=True)
+class EvaluationOutputs:
+    metrics: ClassificationMetrics
+    true_labels: np.ndarray
+    predicted_labels: np.ndarray
+    topk_indices: np.ndarray
+    logits: np.ndarray
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -140,18 +160,15 @@ def run_exact_upstream_transformer(
     category_mapping = load_category_mapping(Path(config.category_map_path))
 
     prepared = prepare_window_tensors(dataset, config)
-    model = ExactUpstreamTransformerClassifier(
+    model = build_classifier_model(
+        config=config,
         input_dim=prepared.train_windows.shape[2],
         num_classes=len(prepared.class_names),
-        model_dim=config.model.model_dim,
-        num_heads=config.model.num_heads,
-        num_layers=config.model.num_layers,
-        dropout=config.model.dropout,
     ).to(device)
 
     train_loader = build_dataloader(
         prepared.train_windows,
-        prepared.train_labels,
+        maybe_shuffle_train_labels(prepared.train_labels, config),
         batch_size=config.batch_size,
         shuffle=True,
         num_workers=config.num_workers,
@@ -179,13 +196,14 @@ def run_exact_upstream_transformer(
         checkpoint_path,
     )
 
-    metrics = evaluate_classifier(
+    evaluation = collect_evaluation_outputs(
         model=model,
         data_loader=test_loader,
         device=device,
         class_names=prepared.class_names,
         category_mapping=category_mapping,
     )
+    metrics = evaluation.metrics
     export_classification_report(
         output_root=run_dir.parent,
         run_name=run_dir.name,
@@ -202,6 +220,7 @@ def run_exact_upstream_transformer(
         },
         overwrite=True,
     )
+    write_prediction_bundle(run_dir / "predictions.npz", evaluation)
     write_training_history(run_dir / "training_history.csv", history)
     write_resolved_config(run_dir / "resolved_config.yaml", config)
     write_run_metadata(
@@ -224,6 +243,7 @@ def run_exact_upstream_transformer(
                 "test": prepared.test_window_count,
             },
             "checkpoint_path": str(checkpoint_path.resolve()),
+            "shuffle_train_labels": config.shuffle_train_labels,
         },
     )
     write_base_class_vocab_manifest(run_dir / "base_class_vocab.json", vocab_manifest)
@@ -269,6 +289,26 @@ def load_run_config(config_path: Path) -> ExactUpstreamRunConfig:
     model_payload = payload["model"]
     if not isinstance(model_payload, dict):
         raise ExactUpstreamRunError("model config must be a mapping")
+    model_name = resolve_model_name(payload.get("model_name"), model_payload)
+    if model_name == "transformer":
+        model_config: TransformerModelConfig | CnnModelConfig = TransformerModelConfig(
+            model_dim=int(model_payload["model_dim"]),
+            num_heads=int(model_payload["num_heads"]),
+            num_layers=int(model_payload["num_layers"]),
+            dropout=float(model_payload["dropout"]),
+        )
+    elif model_name == "cnn":
+        raw_channels = model_payload["channels"]
+        if not isinstance(raw_channels, list) or not raw_channels:
+            raise ExactUpstreamRunError("cnn model channels must be a non-empty list")
+        model_config = CnnModelConfig(
+            channels=tuple(int(channel) for channel in raw_channels),
+            kernel_size=int(model_payload["kernel_size"]),
+            dropout=float(model_payload["dropout"]),
+            use_batchnorm=bool(model_payload["use_batchnorm"]),
+        )
+    else:
+        raise ExactUpstreamRunError(f"unsupported model_name for this runner: {model_name!r}")
 
     return ExactUpstreamRunConfig(
         track=str(payload["track"]),
@@ -291,12 +331,22 @@ def load_run_config(config_path: Path) -> ExactUpstreamRunConfig:
         window_size=int(payload["window_size"]),
         stride=None if payload["stride"] is None else int(payload["stride"]),
         num_workers=int(payload["num_workers"]),
-        model=TransformerModelConfig(
-            model_dim=int(model_payload["model_dim"]),
-            num_heads=int(model_payload["num_heads"]),
-            num_layers=int(model_payload["num_layers"]),
-            dropout=float(model_payload["dropout"]),
-        ),
+        shuffle_train_labels=bool(payload.get("shuffle_train_labels", False)),
+        model_name=model_name,
+        model=model_config,
+    )
+
+
+def resolve_model_name(raw_value: Any, model_payload: dict[str, Any]) -> str:
+    if raw_value is not None:
+        return str(raw_value)
+    model_keys = set(model_payload)
+    if {"model_dim", "num_heads", "num_layers", "dropout"} <= model_keys:
+        return "transformer"
+    if {"channels", "kernel_size", "dropout", "use_batchnorm"} <= model_keys:
+        return "cnn"
+    raise ExactUpstreamRunError(
+        "model_name is missing and could not be inferred from the model config keys"
     )
 
 
@@ -390,6 +440,49 @@ def prepare_window_tensors(
     )
 
 
+def build_classifier_model(
+    *,
+    config: ExactUpstreamRunConfig,
+    input_dim: int,
+    num_classes: int,
+) -> nn.Module:
+    if config.model_name == "transformer":
+        if not isinstance(config.model, TransformerModelConfig):
+            raise ExactUpstreamRunError("transformer config is malformed")
+        return ExactUpstreamTransformerClassifier(
+            input_dim=input_dim,
+            num_classes=num_classes,
+            model_dim=config.model.model_dim,
+            num_heads=config.model.num_heads,
+            num_layers=config.model.num_layers,
+            dropout=config.model.dropout,
+        )
+    if config.model_name == "cnn":
+        if not isinstance(config.model, CnnModelConfig):
+            raise ExactUpstreamRunError("cnn config is malformed")
+        return ExactUpstreamCnnClassifier(
+            in_channels=input_dim,
+            num_classes=num_classes,
+            channels=config.model.channels,
+            kernel_size=config.model.kernel_size,
+            dropout=config.model.dropout,
+            use_batchnorm=config.model.use_batchnorm,
+        )
+    raise ExactUpstreamRunError(f"unsupported model_name for build: {config.model_name!r}")
+
+
+def maybe_shuffle_train_labels(
+    labels: np.ndarray,
+    config: ExactUpstreamRunConfig,
+) -> np.ndarray:
+    labels_copy = labels.copy()
+    if not config.shuffle_train_labels:
+        return labels_copy
+    rng = np.random.default_rng(config.seed)
+    rng.shuffle(labels_copy)
+    return labels_copy
+
+
 def build_dataloader(
     windows: np.ndarray,
     labels: np.ndarray,
@@ -453,25 +546,56 @@ def evaluate_classifier(
     class_names: tuple[str, ...],
     category_mapping: dict[str, str],
 ) -> Any:
+    return collect_evaluation_outputs(
+        model=model,
+        data_loader=data_loader,
+        device=device,
+        class_names=class_names,
+        category_mapping=category_mapping,
+    ).metrics
+
+
+def collect_evaluation_outputs(
+    *,
+    model: nn.Module,
+    data_loader: DataLoader[Any],
+    device: torch.device,
+    class_names: tuple[str, ...],
+    category_mapping: dict[str, str],
+) -> EvaluationOutputs:
     model.eval()
     predicted_labels: list[np.ndarray] = []
     topk_indices: list[np.ndarray] = []
     true_labels: list[np.ndarray] = []
+    logits_rows: list[np.ndarray] = []
     with torch.no_grad():
         for batch_x, batch_y in data_loader:
             batch_x = batch_x.to(device=device, dtype=torch.float32)
             logits = model(batch_x)
+            logits_cpu = logits.cpu().numpy()
             predicted = logits.argmax(dim=1).cpu().numpy()
             topk = torch.topk(logits, k=min(5, logits.shape[1]), dim=1).indices.cpu().numpy()
             predicted_labels.append(predicted)
             topk_indices.append(topk)
             true_labels.append(batch_y.numpy())
-    return compute_classification_metrics(
+            logits_rows.append(logits_cpu)
+    true_array = np.concatenate(true_labels, axis=0)
+    predicted_array = np.concatenate(predicted_labels, axis=0)
+    topk_array = np.concatenate(topk_indices, axis=0)
+    logits_array = np.concatenate(logits_rows, axis=0)
+    metrics = compute_classification_metrics(
         class_names=class_names,
-        true_labels=np.concatenate(true_labels, axis=0),
-        predicted_labels=np.concatenate(predicted_labels, axis=0),
-        topk_indices=np.concatenate(topk_indices, axis=0),
+        true_labels=true_array,
+        predicted_labels=predicted_array,
+        topk_indices=topk_array,
         category_mapping=category_mapping,
+    )
+    return EvaluationOutputs(
+        metrics=metrics,
+        true_labels=true_array,
+        predicted_labels=predicted_array,
+        topk_indices=topk_array,
+        logits=logits_array,
     )
 
 
@@ -492,6 +616,17 @@ def write_resolved_config(output_path: Path, config: ExactUpstreamRunConfig) -> 
 
 def write_run_metadata(output_path: Path, payload: dict[str, Any]) -> None:
     output_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def write_prediction_bundle(output_path: Path, evaluation: EvaluationOutputs) -> None:
+    np.savez_compressed(
+        output_path,
+        class_names=np.asarray(evaluation.metrics.class_names),
+        true_labels=evaluation.true_labels,
+        predicted_labels=evaluation.predicted_labels,
+        topk_indices=evaluation.topk_indices,
+        logits=evaluation.logits,
+    )
 
 
 def build_run_dir(output_root: Path, experiment_name: str, config_payload: dict[str, Any]) -> Path:

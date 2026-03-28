@@ -10,9 +10,13 @@ import torch
 from smelt.evaluation import export_classification_report, load_category_mapping
 from smelt.models import ExactUpstreamTransformerClassifier
 from smelt.training.run import (
+    ExactUpstreamRunConfig,
+    TransformerModelConfig,
     build_dataloader,
+    collect_evaluation_outputs,
     evaluate_classifier,
     load_run_config,
+    maybe_shuffle_train_labels,
     resolve_device,
     train_classifier,
 )
@@ -108,6 +112,73 @@ def test_evaluation_loop_writes_report_artifacts(tmp_path: Path) -> None:
     assert Path(report_paths.per_category_accuracy_csv).is_file()
 
 
+def test_collect_evaluation_outputs_returns_predictions() -> None:
+    model = ExactUpstreamTransformerClassifier(
+        input_dim=6,
+        num_classes=5,
+        model_dim=32,
+        num_heads=4,
+        num_layers=1,
+        dropout=0.1,
+    )
+    windows = np.random.default_rng(2).normal(size=(5, 20, 6)).astype(np.float32)
+    labels = np.asarray([0, 1, 2, 3, 4], dtype=np.int64)
+    loader = build_dataloader(windows, labels, batch_size=5, shuffle=False, num_workers=0)
+    outputs = collect_evaluation_outputs(
+        model=model,
+        data_loader=loader,
+        device=torch.device("cpu"),
+        class_names=("alpha", "beta", "gamma", "delta", "epsilon"),
+        category_mapping={
+            "alpha": "nuts",
+            "beta": "spices",
+            "gamma": "herbs",
+            "delta": "fruits",
+            "epsilon": "vegetables",
+        },
+    )
+
+    assert outputs.true_labels.shape == (5,)
+    assert outputs.predicted_labels.shape == (5,)
+    assert outputs.topk_indices.shape == (5, 5)
+    assert outputs.logits.shape == (5, 5)
+
+
+def test_maybe_shuffle_train_labels_is_deterministic_when_enabled() -> None:
+    labels = np.asarray([0, 1, 2, 3, 4, 5], dtype=np.int64)
+    config = ExactUpstreamRunConfig(
+        track="exact-upstream",
+        experiment_name="shuffle-smoke",
+        config_path="config.yaml",
+        data_root="data",
+        output_root="results/runs",
+        category_map_path="category_map.json",
+        preprocessing_summary_path="preprocessing.json",
+        class_vocab_manifest_path="class_vocab.json",
+        gcms_class_map_manifest_path="gcms_map.json",
+        seed=7,
+        device="cpu",
+        epochs=1,
+        batch_size=2,
+        lr=1e-3,
+        weight_decay=0.0,
+        grad_clip=1.0,
+        diff_period=25,
+        window_size=100,
+        stride=None,
+        num_workers=0,
+        shuffle_train_labels=True,
+        model_name="transformer",
+        model=TransformerModelConfig(),
+    )
+
+    shuffled = maybe_shuffle_train_labels(labels, config)
+    reshuffled = maybe_shuffle_train_labels(labels, config)
+
+    assert not np.array_equal(shuffled, labels)
+    assert np.array_equal(shuffled, reshuffled)
+
+
 def test_run_config_resolves_exact_upstream_base_path(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -143,6 +214,7 @@ def test_run_config_resolves_exact_upstream_base_path(
                 "window_size: 100",
                 "stride: null",
                 "num_workers: 0",
+                "model_name: transformer",
                 "model:",
                 "  model_dim: 32",
                 "  num_heads: 4",

@@ -1,5 +1,5 @@
 track: exact-upstream
-experiment_name: e0_transformer_cls_w100_g25
+experiment_name: e0_transformer_cls_w100_g25_shuffled_labels
 data_root: ${SMELT_DATA_ROOT}
 output_root: results/runs
 category_map_path: configs/exact-upstream/category_map.json
@@ -17,6 +17,7 @@ diff_period: 25
 window_size: 100
 stride: null
 num_workers: 0
+shuffle_train_labels: true
 model_name: transformer
 model:
   model_dim: 256
