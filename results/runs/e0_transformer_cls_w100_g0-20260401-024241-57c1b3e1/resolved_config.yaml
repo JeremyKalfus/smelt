@@ -1,0 +1,26 @@
+batch_size: 64
+category_map_path: configs/exact-upstream/category_map.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+config_path: /Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/e0_transformer_cls_w100_g0.yaml
+data_root: /Users/jeremykalfus/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/71bcae740b885be23db5f72933a8bc55c4e18ad7/data
+device: auto
+diff_period: 0
+epochs: 5
+experiment_name: e0_transformer_cls_w100_g0
+gcms_class_map_manifest_path: artifacts/manifests/gcms_class_map.json
+grad_clip: 1.0
+lr: 0.001
+model:
+  dropout: 0.1
+  model_dim: 256
+  num_heads: 8
+  num_layers: 3
+num_workers: 0
+output_root: results/runs
+preprocessing_summary_path: artifacts/methods/t04_preprocessing_smoke.json
+seed: 42
+shuffle_train_labels: false
+stride: null
+track: exact-upstream
+weight_decay: 0.0
+window_size: 100

@@ -1,0 +1,16 @@
+{
+  "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/e0_transformer_cls_w100_g25_shuffled_labels-20260401-024138-7fbc765f/checkpoint_final.pt",
+  "mode": "classification",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "gcms_class_map_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/gcms_class_map.json",
+    "preprocessing_summary_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t04_preprocessing_smoke.json"
+  },
+  "shuffle_train_labels": true,
+  "track": "exact-upstream",
+  "window_counts": {
+    "test": 502,
+    "train": 2512
+  }
+}
