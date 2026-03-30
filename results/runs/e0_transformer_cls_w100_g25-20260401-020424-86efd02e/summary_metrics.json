@@ -1,0 +1,102 @@
+{
+  "acc@1": 54.18326693227091,
+  "acc@5": 88.44621513944223,
+  "class_names": [
+    "allspice",
+    "almond",
+    "angelica",
+    "apple",
+    "asparagus",
+    "avocado",
+    "banana",
+    "brazil_nut",
+    "broccoli",
+    "brussel_sprouts",
+    "cabbage",
+    "cashew",
+    "cauliflower",
+    "chamomile",
+    "chervil",
+    "chestnuts",
+    "chives",
+    "cinnamon",
+    "cloves",
+    "coriander",
+    "cumin",
+    "dill",
+    "garlic",
+    "ginger",
+    "hazelnut",
+    "kiwi",
+    "lemon",
+    "mandarin_orange",
+    "mango",
+    "mint",
+    "mugwort",
+    "mustard",
+    "nutmeg",
+    "oregano",
+    "peach",
+    "peanuts",
+    "pear",
+    "pecans",
+    "pili_nut",
+    "pineapple",
+    "pistachios",
+    "potato",
+    "radish",
+    "saffron",
+    "star_anise",
+    "strawberry",
+    "sweet_potato",
+    "tomato",
+    "turnip",
+    "walnuts"
+  ],
+  "f1_macro": 50.429012333660005,
+  "methods": {
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "gcms_class_map_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/gcms_class_map.json",
+    "preprocessing_summary_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t04_preprocessing_smoke.json",
+    "test_window_count": 502,
+    "train_standardization_shape": [
+      251200,
+      6
+    ],
+    "train_window_count": 2512
+  },
+  "per_category": [
+    {
+      "acc@1": 49.532710280373834,
+      "acc@5": 88.78504672897196,
+      "category": "nuts",
+      "n": 107
+    },
+    {
+      "acc@1": 50.0,
+      "acc@5": 91.83673469387756,
+      "category": "spices",
+      "n": 98
+    },
+    {
+      "acc@1": 54.08163265306123,
+      "acc@5": 79.59183673469387,
+      "category": "herbs",
+      "n": 98
+    },
+    {
+      "acc@1": 59.59595959595959,
+      "acc@5": 91.91919191919192,
+      "category": "fruits",
+      "n": 99
+    },
+    {
+      "acc@1": 57.99999999999999,
+      "acc@5": 90.0,
+      "category": "vegetables",
+      "n": 100
+    }
+  ],
+  "precision_macro": 57.39907843274716,
+  "recall_macro": 54.214141414141416
+}
