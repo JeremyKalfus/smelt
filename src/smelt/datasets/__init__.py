@@ -36,6 +36,13 @@ from .gcms_map import (
     write_gcms_class_map_csv,
     write_gcms_class_map_manifest,
 )
+from .gcms_research import (
+    ResearchGcmsAnchorSet,
+    ResearchGcmsError,
+    ResearchGcmsManifest,
+    load_research_gcms_anchor_set,
+    write_research_gcms_anchor_usage,
+)
 from .research_views import (
     DIFF_VIEW,
     FUSED_RAW_DIFF_VIEW,
@@ -64,6 +71,9 @@ __all__ = [
     "GcmsValidationResult",
     "RAW_SENSOR_COLUMNS",
     "RAW_ALIGNED_VIEW",
+    "ResearchGcmsAnchorSet",
+    "ResearchGcmsError",
+    "ResearchGcmsManifest",
     "RESEARCH_VIEW_MODES",
     "ResearchViewError",
     "SensorFileRecord",
@@ -75,6 +85,7 @@ __all__ = [
     "extract_base_class_vocab",
     "load_base_sensor_dataset",
     "load_gcms_source_table",
+    "load_research_gcms_anchor_set",
     "load_sensor_file",
     "load_split_records",
     "align_raw_values",
@@ -90,6 +101,7 @@ __all__ = [
     "write_base_class_vocab_manifest",
     "write_gcms_class_map_csv",
     "write_gcms_class_map_manifest",
+    "write_research_gcms_anchor_usage",
     "DIFF_VIEW",
     "FUSED_RAW_DIFF_VIEW",
 ]

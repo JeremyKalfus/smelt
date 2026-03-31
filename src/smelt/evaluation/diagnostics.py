@@ -49,6 +49,18 @@ class RecipeDiffArtifactPaths:
         }
 
 
+@dataclass(slots=True)
+class ComparisonArtifactPaths:
+    csv_path: str
+    json_path: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "csv_path": self.csv_path,
+            "json_path": self.json_path,
+        }
+
+
 def export_run_registry_artifacts(
     *,
     run_root: Path,
@@ -118,6 +130,53 @@ def export_recipe_diff(
         encoding="utf-8",
     )
     return RecipeDiffArtifactPaths(
+        csv_path=str(output_csv.resolve()),
+        json_path=str(output_json.resolve()),
+    )
+
+
+def export_comparison_summary(
+    *,
+    baseline_run_dir: Path,
+    comparison_run_dir: Path,
+    output_csv: Path,
+    output_json: Path,
+    label: str,
+) -> ComparisonArtifactPaths:
+    baseline_entry = build_run_registry_entry(baseline_run_dir)
+    comparison_entry = build_run_registry_entry(comparison_run_dir)
+    summary = {
+        "label": label,
+        "baseline_run_id": baseline_entry["run_id"],
+        "baseline_track": baseline_entry["track"],
+        "baseline_model_family": baseline_entry["model_family"],
+        "baseline_view_mode": baseline_entry["view_mode"],
+        "baseline_acc@1": baseline_entry["acc@1"],
+        "baseline_acc@5": baseline_entry["acc@5"],
+        "baseline_macro_f1": baseline_entry["macro_f1"],
+        "comparison_run_id": comparison_entry["run_id"],
+        "comparison_track": comparison_entry["track"],
+        "comparison_model_family": comparison_entry["model_family"],
+        "comparison_view_mode": comparison_entry["view_mode"],
+        "comparison_acc@1": comparison_entry["acc@1"],
+        "comparison_acc@5": comparison_entry["acc@5"],
+        "comparison_macro_f1": comparison_entry["macro_f1"],
+    }
+    try:
+        baseline_acc = float(baseline_entry["acc@1"])
+        comparison_acc = float(comparison_entry["acc@1"])
+        baseline_f1 = float(baseline_entry["macro_f1"])
+        comparison_f1 = float(comparison_entry["macro_f1"])
+    except ValueError:
+        baseline_acc = comparison_acc = baseline_f1 = comparison_f1 = float("nan")
+    summary["delta_acc@1"] = stringify(comparison_acc - baseline_acc)
+    summary["delta_macro_f1"] = stringify(comparison_f1 - baseline_f1)
+
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
+    output_json.parent.mkdir(parents=True, exist_ok=True)
+    write_dict_rows_csv(output_csv, [summary])
+    output_json.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return ComparisonArtifactPaths(
         csv_path=str(output_csv.resolve()),
         json_path=str(output_json.resolve()),
     )
@@ -315,6 +374,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("t11_"):
+        return "t11"
     if run_id.startswith("e0_transformer"):
         return "t07"
     if run_id.startswith("f1_cnn"):
@@ -324,6 +385,55 @@ def infer_ticket_stage(run_id: str) -> str:
     if run_id.startswith("t10b_"):
         return "t10b"
     return ""
+
+
+def compare_research_supervised_recipe_compatibility(
+    baseline_config_path: Path,
+    comparison_config_path: Path,
+) -> dict[str, object]:
+    baseline = load_yaml_file(baseline_config_path)
+    comparison = load_yaml_file(comparison_config_path)
+    allowed_differences = {
+        "experiment_name",
+        "config_path",
+        "output_root",
+        "mode",
+        "pretrained_checkpoint_path",
+        "gcms_class_map_manifest_path",
+        "projection_dim",
+        "gcms_hidden_dim",
+        "temperature",
+    }
+    allowed_model_differences: set[str] = set()
+    material_mismatches: dict[str, dict[str, str]] = {}
+    for key in sorted(set(baseline) | set(comparison)):
+        if key in allowed_differences:
+            continue
+        baseline_value = baseline.get(key)
+        comparison_value = comparison.get(key)
+        if key == "model":
+            baseline_model = baseline_value if isinstance(baseline_value, dict) else {}
+            comparison_model = comparison_value if isinstance(comparison_value, dict) else {}
+            for model_key in sorted(set(baseline_model) | set(comparison_model)):
+                if model_key in allowed_model_differences:
+                    continue
+                if baseline_model.get(model_key) != comparison_model.get(model_key):
+                    material_mismatches[f"model.{model_key}"] = {
+                        "baseline": stringify(baseline_model.get(model_key)),
+                        "comparison": stringify(comparison_model.get(model_key)),
+                    }
+            continue
+        if baseline_value != comparison_value:
+            material_mismatches[key] = {
+                "baseline": stringify(baseline_value),
+                "comparison": stringify(comparison_value),
+            }
+    return {
+        "compatible": not material_mismatches,
+        "material_mismatches": material_mismatches,
+        "baseline_config_path": str(baseline_config_path.resolve()),
+        "comparison_config_path": str(comparison_config_path.resolve()),
+    }
 
 
 def infer_model_family(run_id: str, config: dict[str, Any]) -> str:

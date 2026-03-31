@@ -158,7 +158,7 @@ class InceptionTimeBlock(nn.Module):
 
 
 class ExactResearchInceptionClassifier(nn.Module):
-    """modest inception-style classifier for fused raw+diff windows."""
+    """modest inception-style classifier for research windows."""
 
     def __init__(
         self,
@@ -204,8 +204,9 @@ class ExactResearchInceptionClassifier(nn.Module):
             current_channels = block.out_channels
         self.blocks = nn.Sequential(*blocks)
         self.pool = nn.AdaptiveAvgPool1d(1)
+        self.feature_dim = current_channels
         self.head = nn.Sequential(
-            nn.Linear(current_channels, head_hidden_dim),
+            nn.Linear(self.feature_dim, head_hidden_dim),
             build_activation(activation_name),
             nn.Dropout(dropout),
             nn.Linear(head_hidden_dim, num_classes),
@@ -223,6 +224,29 @@ class ExactResearchInceptionClassifier(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.head(self.forward_features(x))
+
+
+def extract_inception_encoder_state_dict(
+    model: ExactResearchInceptionClassifier,
+) -> dict[str, torch.Tensor]:
+    state_dict = model.state_dict()
+    return {
+        key: value.detach().cpu()
+        for key, value in state_dict.items()
+        if key.startswith("stem.") or key.startswith("blocks.")
+    }
+
+
+def load_inception_encoder_state_dict(
+    model: ExactResearchInceptionClassifier,
+    encoder_state_dict: dict[str, torch.Tensor],
+) -> None:
+    model_state_dict = model.state_dict()
+    missing_keys = sorted(set(encoder_state_dict) - set(model_state_dict))
+    if missing_keys:
+        raise ValueError(f"encoder state has keys missing from model: {missing_keys}")
+    model_state_dict.update(encoder_state_dict)
+    model.load_state_dict(model_state_dict)
 
 
 def build_activation(name: str) -> nn.Module:
