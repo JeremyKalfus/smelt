@@ -13,6 +13,7 @@ import yaml
 
 from smelt.datasets import (
     FUSED_RAW_DIFF_VIEW,
+    RESEARCH_VIEW_MODES,
     build_base_class_vocab_manifest,
     load_base_sensor_dataset,
     preprocess_split_records_for_view,
@@ -283,10 +284,13 @@ def load_research_run_config(config_path: Path) -> ResearchRunConfig:
         raise ResearchRunError(f"research run config is missing required keys: {missing_keys}")
     if payload["track"] != "research-extension":
         raise ResearchRunError(f"unsupported track for this runner: {payload['track']!r}")
-    if payload["view_mode"] != FUSED_RAW_DIFF_VIEW:
+    if payload["view_mode"] not in RESEARCH_VIEW_MODES:
         raise ResearchRunError(
-            f"t10 only supports the fused research view, found {payload['view_mode']!r}"
+            "unsupported research view for this runner: "
+            f"{payload['view_mode']!r}; expected one of {RESEARCH_VIEW_MODES}"
         )
+    if payload["view_mode"] == FUSED_RAW_DIFF_VIEW and int(payload["diff_period"]) <= 0:
+        raise ResearchRunError("fused_raw_diff requires diff_period > 0")
     model_payload = payload["model"]
     if not isinstance(model_payload, dict):
         raise ResearchRunError("research model config must be a mapping")

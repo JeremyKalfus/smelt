@@ -1,0 +1,29 @@
+track: research-extension
+experiment_name: t10b_inception_raw_aligned_supervised_w100_g25
+data_root: ${SMELT_DATA_ROOT}
+output_root: results/runs
+category_map_path: configs/exact-upstream/category_map.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+exact_upstream_regression_path: artifacts/methods/t10b_exact_upstream_regression_smoke.json
+seed: 42
+device: auto
+epochs: 30
+batch_size: 32
+lr: 0.0015
+weight_decay: 0.0001
+grad_clip: 1.0
+diff_period: 25
+window_size: 100
+stride: 50
+num_workers: 0
+view_mode: raw_aligned
+shuffle_train_labels: false
+model:
+  stem_channels: 64
+  branch_channels: 32
+  bottleneck_channels: 32
+  num_blocks: 6
+  residual_interval: 3
+  activation_name: gelu
+  dropout: 0.1
+  head_hidden_dim: 128
