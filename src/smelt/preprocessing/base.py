@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
 
-from smelt.datasets import SensorFileRecord
+if TYPE_CHECKING:
+    from smelt.datasets.contracts import SensorFileRecord
 
 EXACT_UPSTREAM_DROPPED_COLUMNS = (
     "Benzene",

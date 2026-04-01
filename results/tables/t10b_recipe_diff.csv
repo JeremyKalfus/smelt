@@ -1,0 +1,3 @@
+augmentation,batch_size,config_path,early_stopping,epochs,experiment_name,feature_count,grad_clip,loss_function,lr,model_family,optimizer,parameter_count,regularization_dropout,scheduler,track,view_mode,weight_decay
+,32,/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/f1_cnn_cls_w100_g25.yaml,,90,f1_cnn_cls_w100_g25,6,1.0,cross_entropy,0.003,cnn,adam,220914,0.2,,exact-upstream,diff,0.0
+,32,/Users/jeremykalfus/CodingProjects/smelt/configs/research-extension/e1_inception_fused_supervised_w100_g25.yaml,,30,e1_inception_fused_supervised_w100_g25,12,1.0,cross_entropy,0.0015,inception,adam,210866,0.1,,research-extension,fused_raw_diff,0.0001

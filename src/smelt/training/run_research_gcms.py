@@ -230,7 +230,11 @@ def run_gcms_pretrain(
         },
         overwrite=True,
     )
-    write_prediction_bundle(run_dir / "predictions.npz", evaluation)
+    write_prediction_bundle(
+        run_dir / "predictions.npz",
+        evaluation,
+        windows=prepared.standardized_test_split.windows,
+    )
     write_training_history(run_dir / "training_history.csv", history)
     write_resolved_config(run_dir / "resolved_config.yaml", config)
     write_run_metadata(
@@ -363,7 +367,11 @@ def run_gcms_finetune(
         },
         overwrite=True,
     )
-    write_prediction_bundle(run_dir / "predictions.npz", evaluation)
+    write_prediction_bundle(
+        run_dir / "predictions.npz",
+        evaluation,
+        windows=prepared.standardized_test_split.windows,
+    )
     write_training_history(run_dir / "training_history.csv", history)
     write_resolved_config(run_dir / "resolved_config.yaml", config)
     write_run_metadata(

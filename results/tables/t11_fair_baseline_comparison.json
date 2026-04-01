@@ -1,0 +1,19 @@
+{
+  "baseline_acc@1": "51.39442231075697",
+  "baseline_acc@5": "87.84860557768924",
+  "baseline_macro_f1": "49.36946294378056",
+  "baseline_model_family": "inception",
+  "baseline_run_id": "t10b_inception_diff_supervised_w100_g25-20260401-144426-c9f0ef66",
+  "baseline_track": "research-extension",
+  "baseline_view_mode": "diff",
+  "comparison_acc@1": "44.6215139442231",
+  "comparison_acc@5": "78.68525896414343",
+  "comparison_macro_f1": "41.171469141963726",
+  "comparison_model_family": "inception",
+  "comparison_run_id": "t11_f1_inception_diff_gcms_finetune_w100_g25-20260401-151800-cb297298",
+  "comparison_track": "research-extension",
+  "comparison_view_mode": "diff",
+  "delta_acc@1": "-6.772908366533869",
+  "delta_macro_f1": "-8.197993801816835",
+  "label": "t11_fine_tune_vs_fair_diff_baseline"
+}

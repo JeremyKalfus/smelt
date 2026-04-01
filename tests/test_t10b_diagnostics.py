@@ -151,6 +151,7 @@ def test_export_run_registry_artifacts_writes_expected_files(tmp_path: Path) -> 
     assert Path(paths.existing_run_summary_csv).exists()
     assert Path(paths.metrics_long_csv).exists()
     assert Path(paths.training_histories_long_csv).exists()
+    assert Path(paths.file_level_metrics_long_csv).exists()
 
     with Path(paths.run_registry_json).open("r", encoding="utf-8") as handle:
         payload = json.load(handle)

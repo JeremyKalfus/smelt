@@ -1,0 +1,6 @@
+{
+  "baseline_config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/research-extension/t10b_inception_diff_supervised_w100_g25.yaml",
+  "comparison_config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/research-extension/t11_f1_inception_diff_gcms_finetune_w100_g25.yaml",
+  "compatible": true,
+  "material_mismatches": {}
+}

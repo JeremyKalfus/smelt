@@ -26,6 +26,7 @@ class DiagnosticArtifactPaths:
     existing_run_summary_csv: str
     metrics_long_csv: str
     training_histories_long_csv: str
+    file_level_metrics_long_csv: str
 
     def to_dict(self) -> dict[str, str]:
         return {
@@ -34,6 +35,7 @@ class DiagnosticArtifactPaths:
             "existing_run_summary_csv": self.existing_run_summary_csv,
             "metrics_long_csv": self.metrics_long_csv,
             "training_histories_long_csv": self.training_histories_long_csv,
+            "file_level_metrics_long_csv": self.file_level_metrics_long_csv,
         }
 
 
@@ -67,11 +69,17 @@ def export_run_registry_artifacts(
     table_root: Path,
     figdata_root: Path,
     existing_run_ids: tuple[str, ...],
+    file_level_root: Path | None = None,
 ) -> DiagnosticArtifactPaths:
     run_dirs = discover_run_dirs(run_root)
     entries = [build_run_registry_entry(run_dir) for run_dir in run_dirs]
     metrics_rows = build_metrics_long_rows(entries)
     history_rows = build_training_history_rows(entries)
+    file_level_rows = build_file_level_metric_rows(
+        run_dirs=run_dirs,
+        entries=entries,
+        file_level_root=file_level_root,
+    )
     existing_entries = [entry for entry in entries if entry["run_id"] in set(existing_run_ids)]
 
     table_root.mkdir(parents=True, exist_ok=True)
@@ -82,6 +90,7 @@ def export_run_registry_artifacts(
     existing_summary_csv = table_root / "t10b_existing_run_summary.csv"
     metrics_long_csv = figdata_root / "metrics_long.csv"
     training_histories_long_csv = figdata_root / "training_histories_long.csv"
+    file_level_metrics_long_csv = figdata_root / "file_level_metrics_long.csv"
 
     write_dict_rows_csv(run_registry_csv, entries)
     run_registry_json.write_text(
@@ -91,6 +100,7 @@ def export_run_registry_artifacts(
     write_dict_rows_csv(existing_summary_csv, existing_entries)
     write_dict_rows_csv(metrics_long_csv, metrics_rows)
     write_dict_rows_csv(training_histories_long_csv, history_rows)
+    write_dict_rows_csv(file_level_metrics_long_csv, file_level_rows)
 
     return DiagnosticArtifactPaths(
         run_registry_csv=str(run_registry_csv.resolve()),
@@ -98,6 +108,7 @@ def export_run_registry_artifacts(
         existing_run_summary_csv=str(existing_summary_csv.resolve()),
         metrics_long_csv=str(metrics_long_csv.resolve()),
         training_histories_long_csv=str(training_histories_long_csv.resolve()),
+        file_level_metrics_long_csv=str(file_level_metrics_long_csv.resolve()),
     )
 
 
@@ -194,8 +205,12 @@ def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
     config = load_yaml_file(run_dir / "resolved_config.yaml")
     training_history_path = run_dir / "training_history.csv"
     research_view_manifest_path = run_dir / "research_view_manifest.json"
+    moonshot_view_manifest_path = run_dir / "moonshot_view_manifest.json"
     research_view_manifest = (
         load_json_file(research_view_manifest_path) if research_view_manifest_path.exists() else {}
+    )
+    moonshot_view_manifest = (
+        load_json_file(moonshot_view_manifest_path) if moonshot_view_manifest_path.exists() else {}
     )
 
     run_id = run_dir.name
@@ -233,10 +248,17 @@ def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
         "run_metadata_path": resolve_artifact_path(run_dir / "run_metadata.json"),
         "predictions_path": resolve_artifact_path(run_dir / "predictions.npz"),
         "research_view_manifest_path": resolve_artifact_path(research_view_manifest_path),
+        "moonshot_view_manifest_path": resolve_artifact_path(moonshot_view_manifest_path),
+        "file_level_metrics_path": resolve_artifact_path(
+            run_dir / "file_level_metrics_comparison.json"
+        ),
         "feature_count": stringify(
-            research_view_manifest.get(
+            moonshot_view_manifest.get(
                 "feature_count",
-                len(summary.get("methods", {}).get("feature_names", [])),
+                research_view_manifest.get(
+                    "feature_count",
+                    len(summary.get("methods", {}).get("feature_names", [])),
+                ),
             )
         ),
     }
@@ -276,6 +298,43 @@ def build_training_history_rows(entries: list[dict[str, str]]) -> list[dict[str,
         with history_path.open("r", encoding="utf-8", newline="") as handle:
             reader = csv.DictReader(handle)
             for row in reader:
+                base_row = {
+                    "run_id": entry["run_id"],
+                    "ticket_stage": entry["ticket_stage"],
+                    "track": entry["track"],
+                    "model_family": entry["model_family"],
+                    "view_mode": entry["view_mode"],
+                    "g": entry["g"],
+                    "window_size": entry["window_size"],
+                    "stride": entry["stride"],
+                }
+                base_row.update({key: value for key, value in row.items() if key is not None})
+                rows.append(base_row)
+    return rows
+
+
+def build_file_level_metric_rows(
+    *,
+    run_dirs: tuple[Path, ...],
+    entries: list[dict[str, str]],
+    file_level_root: Path | None,
+) -> list[dict[str, str]]:
+    entry_by_run_id = {entry["run_id"]: entry for entry in entries}
+    rows: list[dict[str, str]] = []
+    for run_dir in run_dirs:
+        entry = entry_by_run_id[run_dir.name]
+        for aggregator_name, summary_path in discover_file_level_summaries(
+            run_dir=run_dir,
+            file_level_root=file_level_root,
+        ):
+            summary = load_json_file(summary_path)
+            for metric_name, source_key in (
+                ("file_acc@1", "acc@1"),
+                ("file_acc@5", "acc@5"),
+                ("file_macro_precision", "precision_macro"),
+                ("file_macro_recall", "recall_macro"),
+                ("file_macro_f1", "f1_macro"),
+            ):
                 rows.append(
                     {
                         "run_id": entry["run_id"],
@@ -286,9 +345,10 @@ def build_training_history_rows(entries: list[dict[str, str]]) -> list[dict[str,
                         "g": entry["g"],
                         "window_size": entry["window_size"],
                         "stride": entry["stride"],
-                        "epoch": row.get("epoch", ""),
-                        "train_loss": row.get("train_loss", ""),
-                        "train_acc@1": row.get("train_acc@1", ""),
+                        "aggregator": aggregator_name,
+                        "metric_name": metric_name,
+                        "metric_value": stringify(summary.get(source_key, "")),
+                        "summary_path": str(summary_path.resolve()),
                     }
                 )
     return rows
@@ -374,6 +434,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("m01_"):
+        return "m01"
     if run_id.startswith("t11_"):
         return "t11"
     if run_id.startswith("e0_transformer"):
@@ -463,6 +525,8 @@ def resolve_view_mode(
     if track == "exact-upstream":
         diff_period = int(config.get("diff_period", 0) or 0)
         return "diff" if diff_period > 0 else "raw"
+    if track == "moonshot-enhanced-setting":
+        return str(config.get("view_mode", ""))
     return ""
 
 
@@ -483,6 +547,31 @@ def resolve_artifact_path(path: Path) -> str:
     if path.exists():
         return str(path.resolve())
     return ""
+
+
+def discover_file_level_summaries(
+    *,
+    run_dir: Path,
+    file_level_root: Path | None,
+) -> tuple[tuple[str, Path], ...]:
+    pairs: list[tuple[str, Path]] = []
+    internal_root = run_dir / "file_level"
+    if internal_root.is_dir():
+        for aggregator_dir in sorted(path for path in internal_root.iterdir() if path.is_dir()):
+            summary_path = aggregator_dir / "summary_metrics.json"
+            if summary_path.is_file():
+                pairs.append((aggregator_dir.name, summary_path))
+    if file_level_root is not None:
+        external_root = file_level_root / run_dir.name
+        if external_root.is_dir():
+            for aggregator_dir in sorted(path for path in external_root.iterdir() if path.is_dir()):
+                summary_path = aggregator_dir / "summary_metrics.json"
+                if summary_path.is_file():
+                    pairs.append((aggregator_dir.name, summary_path))
+    seen: dict[str, Path] = {}
+    for aggregator_name, summary_path in pairs:
+        seen.setdefault(aggregator_name, summary_path)
+    return tuple(sorted(seen.items()))
 
 
 def count_trainable_parameters(model: Any) -> int:

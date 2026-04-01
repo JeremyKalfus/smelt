@@ -6,9 +6,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from smelt.datasets.contracts import TRAIN_SPLIT
-
 from .windows import WindowedSplit, WindowingError, rewrap_windows, stack_window_values
+
+TRAIN_SPLIT = "offline_training"
 
 
 class StandardizationError(Exception):
