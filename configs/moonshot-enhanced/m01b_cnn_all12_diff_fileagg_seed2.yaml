@@ -1,0 +1,36 @@
+track: moonshot-enhanced-setting
+experiment_name: m01b_cnn_all12_diff_fileagg_seed2
+data_root: ${SMELT_DATA_ROOT}
+output_root: results/runs
+category_map_path: configs/exact-upstream/category_map.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+exact_upstream_regression_path: artifacts/methods/t11_exact_upstream_regression_smoke.json
+seed: 7
+device: auto
+epochs: 120
+batch_size: 32
+lr: 0.003
+weight_decay: 0.0005
+grad_clip: 1.0
+label_smoothing: 0.05
+diff_period: 25
+window_size: 100
+stride: 50
+num_workers: 0
+validation_files_per_class: 1
+primary_file_aggregator: mean_logits
+validation_file_aggregator: mean_logits
+scheduler_name: cosine
+scheduler_t_max: 120
+scheduler_eta_min: 0.0001
+shuffle_train_labels: false
+channel_set: all12
+model_name: cnn
+model:
+  channels:
+    - 64
+    - 128
+    - 256
+  kernel_size: 5
+  dropout: 0.2
+  use_batchnorm: true

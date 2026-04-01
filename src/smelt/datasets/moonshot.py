@@ -10,6 +10,15 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
+from smelt.preprocessing.base import (
+    EXACT_UPSTREAM_DROPPED_COLUMNS,
+    PreprocessedSensorRecord,
+    apply_temporal_differencing,
+    project_columns,
+    sensor_record_to_array,
+    subtract_first_row,
+)
+
 from .contracts import BaseSensorDataset, SensorFileRecord
 
 if TYPE_CHECKING:
@@ -17,6 +26,14 @@ if TYPE_CHECKING:
     from smelt.preprocessing.windows import WindowedSplit
 
 MOONSHOT_TRACK = "moonshot-enhanced-setting"
+MOONSHOT_ALL12_CHANNEL_SET = "all12"
+MOONSHOT_BENCHMARK6_CHANNEL_SET = "benchmark6"
+MOONSHOT_EXTRA6_CHANNEL_SET = "extra6"
+MOONSHOT_CHANNEL_SETS = (
+    MOONSHOT_ALL12_CHANNEL_SET,
+    MOONSHOT_BENCHMARK6_CHANNEL_SET,
+    MOONSHOT_EXTRA6_CHANNEL_SET,
+)
 
 
 class MoonshotDataError(Exception):
@@ -34,6 +51,7 @@ class MoonshotPreparedSplits:
     class_names: tuple[str, ...]
     feature_names: tuple[str, ...]
     retained_columns: tuple[str, ...]
+    channel_set: str
     train_records: tuple[SensorFileRecord, ...]
     validation_records: tuple[SensorFileRecord, ...]
     test_records: tuple[SensorFileRecord, ...]
@@ -86,29 +104,30 @@ def prepare_moonshot_window_splits(
     window_size: int,
     stride: int | None,
     validation_files_per_class: int,
+    channel_set: str = MOONSHOT_ALL12_CHANNEL_SET,
 ) -> MoonshotPreparedSplits:
-    from smelt.preprocessing.base import preprocess_split_records
     from smelt.preprocessing.standardize import apply_window_standardizer, fit_window_standardizer
     from smelt.preprocessing.windows import generate_split_windows
 
+    resolved_channel_set = resolve_moonshot_channel_set(channel_set)
     grouped_split = deterministic_grouped_validation_split(
         dataset.train_records,
         validation_files_per_class=validation_files_per_class,
     )
-    train_records = preprocess_split_records(
+    train_records = preprocess_moonshot_records(
         grouped_split.train_records,
-        dropped_columns=(),
         diff_period=diff_period,
+        channel_set=resolved_channel_set,
     )
-    validation_records = preprocess_split_records(
+    validation_records = preprocess_moonshot_records(
         grouped_split.validation_records,
-        dropped_columns=(),
         diff_period=diff_period,
+        channel_set=resolved_channel_set,
     )
-    test_records = preprocess_split_records(
+    test_records = preprocess_moonshot_records(
         dataset.test_records,
-        dropped_columns=(),
         diff_period=diff_period,
+        channel_set=resolved_channel_set,
     )
     train_windows = generate_split_windows(
         train_records,
@@ -140,7 +159,8 @@ def prepare_moonshot_window_splits(
     class_names = tuple(sorted(dataset.class_vocab))
     view_manifest = {
         "track": MOONSHOT_TRACK,
-        "view_mode": "diff_all12",
+        "view_mode": f"diff_{resolved_channel_set}",
+        "channel_set": resolved_channel_set,
         "resolved_data_root": dataset.resolved_data_root,
         "differencing_period": diff_period,
         "window_size": window_size,
@@ -161,6 +181,7 @@ def prepare_moonshot_window_splits(
         class_names=class_names,
         feature_names=feature_names,
         retained_columns=feature_names,
+        channel_set=resolved_channel_set,
         train_records=grouped_split.train_records,
         validation_records=grouped_split.validation_records,
         test_records=dataset.test_records,
@@ -169,6 +190,76 @@ def prepare_moonshot_window_splits(
         standardized_test_split=standardized_test,
         standardizer=standardizer,
         view_manifest=view_manifest,
+    )
+
+
+def resolve_moonshot_channel_set(channel_set: str) -> str:
+    if channel_set not in MOONSHOT_CHANNEL_SETS:
+        raise MoonshotDataError(
+            f"unsupported moonshot channel_set {channel_set!r}; expected {MOONSHOT_CHANNEL_SETS}"
+        )
+    return channel_set
+
+
+def preprocess_moonshot_records(
+    records: tuple[SensorFileRecord, ...],
+    *,
+    diff_period: int,
+    channel_set: str,
+) -> tuple[PreprocessedSensorRecord, ...]:
+    return tuple(
+        preprocess_moonshot_record(
+            record,
+            diff_period=diff_period,
+            channel_set=channel_set,
+        )
+        for record in records
+    )
+
+
+def preprocess_moonshot_record(
+    record: SensorFileRecord,
+    *,
+    diff_period: int,
+    channel_set: str,
+) -> PreprocessedSensorRecord:
+    retained_columns = resolve_channel_set_columns(record.column_names, channel_set)
+    baseline_values = subtract_first_row(sensor_record_to_array(record))
+    projected_values = project_columns(
+        baseline_values,
+        record.column_names,
+        retained_columns,
+    )
+    diffed_values = apply_temporal_differencing(projected_values, diff_period)
+    return PreprocessedSensorRecord(
+        split=record.split,
+        class_name=record.class_name,
+        relative_path=record.relative_path,
+        absolute_path=record.absolute_path,
+        column_names=retained_columns,
+        values=diffed_values,
+        source_row_count=record.row_count,
+        diff_period=diff_period,
+    )
+
+
+def resolve_channel_set_columns(
+    observed_columns: tuple[str, ...],
+    channel_set: str,
+) -> tuple[str, ...]:
+    resolved_channel_set = resolve_moonshot_channel_set(channel_set)
+    if resolved_channel_set == MOONSHOT_ALL12_CHANNEL_SET:
+        return observed_columns
+    if resolved_channel_set == MOONSHOT_BENCHMARK6_CHANNEL_SET:
+        return tuple(
+            column_name
+            for column_name in observed_columns
+            if column_name not in set(EXACT_UPSTREAM_DROPPED_COLUMNS)
+        )
+    return tuple(
+        column_name
+        for column_name in observed_columns
+        if column_name in set(EXACT_UPSTREAM_DROPPED_COLUMNS)
     )
 
 

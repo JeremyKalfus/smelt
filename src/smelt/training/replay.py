@@ -13,6 +13,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from smelt.datasets import (
+    MOONSHOT_TRACK,
     build_base_class_vocab_manifest,
     load_base_sensor_dataset,
     preprocess_split_records_for_view,
@@ -35,6 +36,7 @@ from .run import (
     load_run_config,
     resolve_device,
 )
+from .run_moonshot import load_moonshot_run_config, prepare_moonshot_tensors
 from .run_research import (
     load_research_run_config,
 )
@@ -65,6 +67,8 @@ def load_replay_context(run_dir: Path) -> ReplayContext:
         return load_exact_upstream_replay_context(resolved_run_dir)
     if track == "research-extension":
         return load_research_replay_context(resolved_run_dir)
+    if track == MOONSHOT_TRACK:
+        return load_moonshot_replay_context(resolved_run_dir)
     raise ReplayError(f"unsupported replay track for {resolved_run_dir}: {track!r}")
 
 
@@ -185,6 +189,46 @@ def load_research_replay_context(run_dir: Path) -> ReplayContext:
         class_names=class_names,
         category_mapping=category_mapping,
         test_windows=standardized_test,
+        test_loader=test_loader,
+        model=model,
+        device=device,
+    )
+
+
+def load_moonshot_replay_context(run_dir: Path) -> ReplayContext:
+    config = load_moonshot_run_config(run_dir / "resolved_config.yaml")
+    dataset = load_base_sensor_dataset(Path(config.data_root))
+    class_names = build_base_class_vocab_manifest(dataset).class_vocab
+    class_to_index = {class_name: index for index, class_name in enumerate(class_names)}
+    category_mapping = load_category_mapping(Path(config.category_map_path))
+
+    prepared = prepare_moonshot_tensors(dataset, config)
+    test_loader = build_dataloader(
+        prepared.test_windows,
+        np.asarray(
+            [
+                class_to_index[window.class_name]
+                for window in prepared.standardized_test_split.windows
+            ],
+            dtype=np.int64,
+        ),
+        batch_size=config.batch_size,
+        shuffle=False,
+        num_workers=config.num_workers,
+    )
+    device = resolve_device(config.device)
+    model = build_classifier_model(
+        config=config,
+        input_dim=prepared.test_windows.shape[2],
+        num_classes=len(class_names),
+    ).to(device)
+    load_checkpoint_weights(model, run_dir / "checkpoint_final.pt")
+    return ReplayContext(
+        run_dir=run_dir,
+        track=config.track,
+        class_names=class_names,
+        category_mapping=category_mapping,
+        test_windows=prepared.standardized_test_split,
         test_loader=test_loader,
         model=model,
         device=device,
