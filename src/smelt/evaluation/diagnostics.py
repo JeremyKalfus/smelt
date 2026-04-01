@@ -228,11 +228,18 @@ def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
         "ticket_stage": infer_ticket_stage(run_id),
         "track": track,
         "model_family": infer_model_family(run_id, config),
+        "channel_set": resolve_channel_set(
+            track=track,
+            metadata=metadata,
+            config=config,
+            moonshot_view_manifest=moonshot_view_manifest,
+        ),
         "view_mode": view_mode,
         "g": stringify(config.get("diff_period")),
         "window_size": stringify(config.get("window_size")),
         "stride": stringify(stride),
         "train_window_count": stringify(resolve_window_count(summary, metadata, "train")),
+        "validation_window_count": stringify(resolve_window_count(summary, metadata, "validation")),
         "test_window_count": stringify(resolve_window_count(summary, metadata, "test")),
         "acc@1": stringify(summary.get("acc@1")),
         "acc@5": stringify(summary.get("acc@5")),
@@ -276,6 +283,7 @@ def build_metrics_long_rows(entries: list[dict[str, str]]) -> list[dict[str, str
                     "ticket_stage": entry["ticket_stage"],
                     "track": entry["track"],
                     "model_family": entry["model_family"],
+                    "channel_set": entry["channel_set"],
                     "view_mode": entry["view_mode"],
                     "g": entry["g"],
                     "window_size": entry["window_size"],
@@ -303,6 +311,7 @@ def build_training_history_rows(entries: list[dict[str, str]]) -> list[dict[str,
                     "ticket_stage": entry["ticket_stage"],
                     "track": entry["track"],
                     "model_family": entry["model_family"],
+                    "channel_set": entry["channel_set"],
                     "view_mode": entry["view_mode"],
                     "g": entry["g"],
                     "window_size": entry["window_size"],
@@ -341,6 +350,7 @@ def build_file_level_metric_rows(
                         "ticket_stage": entry["ticket_stage"],
                         "track": entry["track"],
                         "model_family": entry["model_family"],
+                        "channel_set": entry["channel_set"],
                         "view_mode": entry["view_mode"],
                         "g": entry["g"],
                         "window_size": entry["window_size"],
@@ -434,6 +444,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("m01b_"):
+        return "m01b"
     if run_id.startswith("m01_"):
         return "m01"
     if run_id.startswith("t11_"):
@@ -526,7 +538,26 @@ def resolve_view_mode(
         diff_period = int(config.get("diff_period", 0) or 0)
         return "diff" if diff_period > 0 else "raw"
     if track == "moonshot-enhanced-setting":
-        return str(config.get("view_mode", ""))
+        return str(metadata.get("view_mode", "")) or str(config.get("view_mode", ""))
+    return ""
+
+
+def resolve_channel_set(
+    *,
+    track: str,
+    metadata: dict[str, Any],
+    config: dict[str, Any],
+    moonshot_view_manifest: dict[str, Any],
+) -> str:
+    if "channel_set" in metadata:
+        return str(metadata["channel_set"])
+    if "channel_set" in moonshot_view_manifest:
+        return str(moonshot_view_manifest["channel_set"])
+    if track == "moonshot-enhanced-setting":
+        view_mode = str(metadata.get("view_mode", "")) or str(config.get("view_mode", ""))
+        if view_mode.startswith("diff_"):
+            return view_mode.removeprefix("diff_")
+        return str(config.get("channel_set", ""))
     return ""
 
 

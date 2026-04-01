@@ -6,6 +6,9 @@ from pathlib import Path
 import yaml
 
 from smelt.datasets import (
+    MOONSHOT_ALL12_CHANNEL_SET,
+    MOONSHOT_BENCHMARK6_CHANNEL_SET,
+    MOONSHOT_EXTRA6_CHANNEL_SET,
     MOONSHOT_TRACK,
     build_base_class_vocab_manifest,
     deterministic_grouped_validation_split,
@@ -51,6 +54,42 @@ def test_all12_diff_path_resolves_twelve_channels() -> None:
 
     assert prepared.standardized_train_split.column_names == dataset.raw_column_names
     assert len(prepared.standardized_train_split.column_names) == 12
+    assert prepared.channel_set == MOONSHOT_ALL12_CHANNEL_SET
+
+
+def test_channel_set_selection_resolves_all12_benchmark6_and_extra6() -> None:
+    dataset = load_base_sensor_dataset(Path("tests/fixtures/smellnet_base_valid"))
+
+    benchmark6 = prepare_moonshot_window_splits(
+        dataset,
+        diff_period=1,
+        window_size=2,
+        stride=1,
+        validation_files_per_class=1,
+        channel_set=MOONSHOT_BENCHMARK6_CHANNEL_SET,
+    )
+    extra6 = prepare_moonshot_window_splits(
+        dataset,
+        diff_period=1,
+        window_size=2,
+        stride=1,
+        validation_files_per_class=1,
+        channel_set=MOONSHOT_EXTRA6_CHANNEL_SET,
+    )
+
+    assert benchmark6.channel_set == MOONSHOT_BENCHMARK6_CHANNEL_SET
+    assert extra6.channel_set == MOONSHOT_EXTRA6_CHANNEL_SET
+    assert len(benchmark6.feature_names) == 6
+    assert len(extra6.feature_names) == 6
+    assert benchmark6.feature_names == ("NO2", "C2H5OH", "VOC", "CO", "Alcohol", "LPG")
+    assert extra6.feature_names == (
+        "Benzene",
+        "Temperature",
+        "Pressure",
+        "Humidity",
+        "Gas_Resistance",
+        "Altitude",
+    )
 
 
 def test_moonshot_run_config_resolves_track_and_aggregators(tmp_path: Path) -> None:

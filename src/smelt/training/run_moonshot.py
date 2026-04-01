@@ -14,10 +14,12 @@ import yaml
 from torch import nn
 
 from smelt.datasets import (
+    MOONSHOT_ALL12_CHANNEL_SET,
     MOONSHOT_TRACK,
     build_base_class_vocab_manifest,
     load_base_sensor_dataset,
     prepare_moonshot_window_splits,
+    resolve_moonshot_channel_set,
     stack_window_labels,
     write_base_class_vocab_manifest,
     write_moonshot_view_manifest,
@@ -41,6 +43,7 @@ from .run import (
     build_run_dir,
     collect_evaluation_outputs,
     expand_env_values,
+    maybe_shuffle_train_labels,
     resolve_device,
     set_seed,
     validate_reference_manifest,
@@ -71,6 +74,7 @@ class MoonshotRunConfig:
     lr: float
     weight_decay: float
     grad_clip: float
+    shuffle_train_labels: bool
     diff_period: int
     window_size: int
     stride: int | None
@@ -82,6 +86,7 @@ class MoonshotRunConfig:
     scheduler_eta_min: float
     primary_file_aggregator: str
     validation_file_aggregator: str
+    channel_set: str
     model_name: str
     model: CnnModelConfig
 
@@ -95,6 +100,7 @@ class MoonshotRunConfig:
 class MoonshotPreparedTensors:
     class_names: tuple[str, ...]
     feature_names: tuple[str, ...]
+    channel_set: str
     train_windows: np.ndarray
     train_labels: np.ndarray
     validation_windows: np.ndarray
@@ -150,6 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"validation_window_count: {prepared.validation_window_count}")
     print(f"test_window_count: {prepared.test_window_count}")
     print(f"feature_count: {len(prepared.feature_names)}")
+    print(f"channel_set: {prepared.channel_set}")
     return 0
 
 
@@ -180,7 +187,7 @@ def run_moonshot(
 
     train_loader = build_dataloader(
         prepared.train_windows,
-        prepared.train_labels,
+        maybe_shuffle_train_labels(prepared.train_labels, config),
         batch_size=config.batch_size,
         shuffle=True,
         num_workers=config.num_workers,
@@ -240,7 +247,8 @@ def run_moonshot(
         metrics=test_evaluation.metrics,
         methods_summary={
             "track": MOONSHOT_TRACK,
-            "view_mode": "diff_all12",
+            "view_mode": f"diff_{config.channel_set}",
+            "channel_set": config.channel_set,
             "exact_upstream_regression_path": str(
                 Path(config.exact_upstream_regression_path).resolve()
             ),
@@ -299,7 +307,8 @@ def run_moonshot(
             result=file_result,
             methods_summary={
                 "track": MOONSHOT_TRACK,
-                "view_mode": "diff_all12",
+                "view_mode": f"diff_{config.channel_set}",
+                "channel_set": config.channel_set,
                 "setting_note": MOONSHOT_TRACK,
                 "window_level_acc@1": test_evaluation.metrics.acc_at_1,
                 "window_level_acc@5": test_evaluation.metrics.acc_at_5,
@@ -311,7 +320,8 @@ def run_moonshot(
                 run_id=run_dir.name,
                 track=MOONSHOT_TRACK,
                 model_family=config.model_name,
-                view_mode="diff_all12",
+                view_mode=f"diff_{config.channel_set}",
+                channel_set=config.channel_set,
                 diff_period=config.diff_period,
                 window_size=config.window_size,
                 stride=prepared.standardized_test_split.stride,
@@ -353,7 +363,8 @@ def run_moonshot(
         {
             "track": MOONSHOT_TRACK,
             "mode": "supervised_classification",
-            "view_mode": "diff_all12",
+            "view_mode": f"diff_{config.channel_set}",
+            "channel_set": config.channel_set,
             "reference_artifacts": {
                 "category_map_path": str(Path(config.category_map_path).resolve()),
                 "class_vocab_manifest_path": str(Path(config.class_vocab_manifest_path).resolve()),
@@ -370,6 +381,7 @@ def run_moonshot(
             "checkpoint_path": str(checkpoint_path.resolve()),
             "best_checkpoint_path": str(best_checkpoint_path.resolve()),
             "validation_files_per_class": config.validation_files_per_class,
+            "shuffle_train_labels": config.shuffle_train_labels,
             "primary_file_aggregator": config.primary_file_aggregator,
             "validation_file_aggregator": config.validation_file_aggregator,
             "best_validation_summary": {
@@ -468,6 +480,7 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         lr=float(payload["lr"]),
         weight_decay=float(payload["weight_decay"]),
         grad_clip=float(payload["grad_clip"]),
+        shuffle_train_labels=bool(payload.get("shuffle_train_labels", False)),
         diff_period=int(payload["diff_period"]),
         window_size=int(payload["window_size"]),
         stride=None if payload["stride"] is None else int(payload["stride"]),
@@ -479,6 +492,9 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         scheduler_eta_min=float(payload["scheduler_eta_min"]),
         primary_file_aggregator=str(payload["primary_file_aggregator"]),
         validation_file_aggregator=str(payload["validation_file_aggregator"]),
+        channel_set=resolve_moonshot_channel_set(
+            str(payload.get("channel_set", MOONSHOT_ALL12_CHANNEL_SET))
+        ),
         model_name=str(payload["model_name"]),
         model=CnnModelConfig(
             channels=tuple(int(channel) for channel in raw_channels),
@@ -499,6 +515,7 @@ def prepare_moonshot_tensors(
         window_size=config.window_size,
         stride=config.stride,
         validation_files_per_class=config.validation_files_per_class,
+        channel_set=config.channel_set,
     )
     train_values = stack_window_values(prepared.standardized_train_split.windows).astype(
         np.float32,
@@ -515,6 +532,7 @@ def prepare_moonshot_tensors(
     return MoonshotPreparedTensors(
         class_names=prepared.class_names,
         feature_names=prepared.feature_names,
+        channel_set=prepared.channel_set,
         train_windows=train_values,
         train_labels=stack_window_labels(prepared.standardized_train_split, prepared.class_names),
         validation_windows=validation_values,
@@ -703,6 +721,7 @@ def build_file_level_summary_row(
     track: str,
     model_family: str,
     view_mode: str,
+    channel_set: str,
     diff_period: int,
     window_size: int,
     stride: int,
@@ -715,6 +734,7 @@ def build_file_level_summary_row(
         "track": track,
         "model_family": model_family,
         "view_mode": view_mode,
+        "channel_set": channel_set,
         "g": str(diff_period),
         "window_size": str(window_size),
         "stride": str(stride),
