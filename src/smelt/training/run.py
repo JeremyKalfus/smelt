@@ -26,13 +26,16 @@ from smelt.datasets import (
 )
 from smelt.evaluation import (
     ClassificationMetrics,
+    build_window_prediction_bundle,
     compute_classification_metrics,
     export_classification_report,
     load_category_mapping,
+    write_window_prediction_bundle,
 )
 from smelt.models import ExactUpstreamCnnClassifier, ExactUpstreamTransformerClassifier
 from smelt.preprocessing import (
     EXACT_UPSTREAM_DROPPED_COLUMNS,
+    WindowedSplit,
     apply_window_standardizer,
     fit_window_standardizer,
     generate_split_windows,
@@ -103,6 +106,8 @@ class PreparedWindowTensors:
     train_window_count: int
     test_window_count: int
     train_standardization_shape: tuple[int, int]
+    standardized_train_split: WindowedSplit
+    standardized_test_split: WindowedSplit
 
 
 @dataclass(slots=True)
@@ -220,7 +225,11 @@ def run_exact_upstream_transformer(
         },
         overwrite=True,
     )
-    write_prediction_bundle(run_dir / "predictions.npz", evaluation)
+    write_prediction_bundle(
+        run_dir / "predictions.npz",
+        evaluation,
+        windows=prepared.standardized_test_split.windows,
+    )
     write_training_history(run_dir / "training_history.csv", history)
     write_resolved_config(run_dir / "resolved_config.yaml", config)
     write_run_metadata(
@@ -437,6 +446,8 @@ def prepare_window_tensors(
             standardizer.window_count * standardizer.window_size,
             standardizer.feature_count,
         ),
+        standardized_train_split=standardized_train,
+        standardized_test_split=standardized_test,
     )
 
 
@@ -618,7 +629,25 @@ def write_run_metadata(output_path: Path, payload: dict[str, Any]) -> None:
     output_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def write_prediction_bundle(output_path: Path, evaluation: EvaluationOutputs) -> None:
+def write_prediction_bundle(
+    output_path: Path,
+    evaluation: EvaluationOutputs,
+    *,
+    windows: tuple[Any, ...] | None = None,
+) -> None:
+    if windows is not None:
+        write_window_prediction_bundle(
+            output_path,
+            build_window_prediction_bundle(
+                class_names=evaluation.metrics.class_names,
+                true_labels=evaluation.true_labels,
+                predicted_labels=evaluation.predicted_labels,
+                topk_indices=evaluation.topk_indices,
+                logits=evaluation.logits,
+                windows=windows,
+            ),
+        )
+        return
     np.savez_compressed(
         output_path,
         class_names=np.asarray(evaluation.metrics.class_names),

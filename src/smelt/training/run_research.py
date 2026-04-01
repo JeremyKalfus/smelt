@@ -22,6 +22,7 @@ from smelt.datasets import (
 from smelt.evaluation import export_classification_report, load_category_mapping
 from smelt.models import ExactResearchInceptionClassifier
 from smelt.preprocessing import (
+    WindowedSplit,
     apply_window_standardizer,
     fit_window_standardizer,
     generate_split_windows,
@@ -106,6 +107,8 @@ class PreparedResearchWindowTensors:
     test_window_count: int
     train_standardization_shape: tuple[int, int]
     view_manifest: dict[str, Any]
+    standardized_train_split: WindowedSplit
+    standardized_test_split: WindowedSplit
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -218,7 +221,11 @@ def run_research_supervised(
         },
         overwrite=True,
     )
-    write_prediction_bundle(run_dir / "predictions.npz", evaluation)
+    write_prediction_bundle(
+        run_dir / "predictions.npz",
+        evaluation,
+        windows=prepared.standardized_test_split.windows,
+    )
     write_training_history(run_dir / "training_history.csv", history)
     write_resolved_config(run_dir / "resolved_config.yaml", config)
     write_run_metadata(
@@ -403,6 +410,8 @@ def prepare_research_window_tensors(
         test_window_count=standardized_test.window_count,
         train_standardization_shape=(standardizer.sample_count, standardizer.feature_count),
         view_manifest=view_manifest,
+        standardized_train_split=standardized_train,
+        standardized_test_split=standardized_test,
     )
 
 

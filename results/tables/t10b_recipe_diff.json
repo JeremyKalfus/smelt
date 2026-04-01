@@ -1,0 +1,88 @@
+{
+  "differences": {
+    "config_path": {
+      "left": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/f1_cnn_cls_w100_g25.yaml",
+      "right": "/Users/jeremykalfus/CodingProjects/smelt/configs/research-extension/e1_inception_fused_supervised_w100_g25.yaml"
+    },
+    "epochs": {
+      "left": "90",
+      "right": "30"
+    },
+    "experiment_name": {
+      "left": "f1_cnn_cls_w100_g25",
+      "right": "e1_inception_fused_supervised_w100_g25"
+    },
+    "feature_count": {
+      "left": "6",
+      "right": "12"
+    },
+    "lr": {
+      "left": "0.003",
+      "right": "0.0015"
+    },
+    "model_family": {
+      "left": "cnn",
+      "right": "inception"
+    },
+    "parameter_count": {
+      "left": "220914",
+      "right": "210866"
+    },
+    "regularization_dropout": {
+      "left": "0.2",
+      "right": "0.1"
+    },
+    "track": {
+      "left": "exact-upstream",
+      "right": "research-extension"
+    },
+    "view_mode": {
+      "left": "diff",
+      "right": "fused_raw_diff"
+    },
+    "weight_decay": {
+      "left": "0.0",
+      "right": "0.0001"
+    }
+  },
+  "left": {
+    "augmentation": "",
+    "batch_size": "32",
+    "config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/f1_cnn_cls_w100_g25.yaml",
+    "early_stopping": "",
+    "epochs": "90",
+    "experiment_name": "f1_cnn_cls_w100_g25",
+    "feature_count": "6",
+    "grad_clip": "1.0",
+    "loss_function": "cross_entropy",
+    "lr": "0.003",
+    "model_family": "cnn",
+    "optimizer": "adam",
+    "parameter_count": "220914",
+    "regularization_dropout": "0.2",
+    "scheduler": "",
+    "track": "exact-upstream",
+    "view_mode": "diff",
+    "weight_decay": "0.0"
+  },
+  "right": {
+    "augmentation": "",
+    "batch_size": "32",
+    "config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/research-extension/e1_inception_fused_supervised_w100_g25.yaml",
+    "early_stopping": "",
+    "epochs": "30",
+    "experiment_name": "e1_inception_fused_supervised_w100_g25",
+    "feature_count": "12",
+    "grad_clip": "1.0",
+    "loss_function": "cross_entropy",
+    "lr": "0.0015",
+    "model_family": "inception",
+    "optimizer": "adam",
+    "parameter_count": "210866",
+    "regularization_dropout": "0.1",
+    "scheduler": "",
+    "track": "research-extension",
+    "view_mode": "fused_raw_diff",
+    "weight_decay": "0.0001"
+  }
+}
