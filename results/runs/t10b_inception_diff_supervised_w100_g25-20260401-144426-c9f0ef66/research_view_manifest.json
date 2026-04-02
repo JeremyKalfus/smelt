@@ -1,0 +1,33 @@
+{
+  "differencing_period": 25,
+  "feature_count": 6,
+  "feature_names": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG"
+  ],
+  "resolved_data_root": "/Users/jeremykalfus/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/71bcae740b885be23db5f72933a8bc55c4e18ad7/data",
+  "retained_columns": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG"
+  ],
+  "standardization_shape": [
+    251200,
+    6
+  ],
+  "stride": 50,
+  "test_record_count": 50,
+  "test_window_count": 502,
+  "track": "research-extension",
+  "train_record_count": 250,
+  "train_window_count": 2512,
+  "view_mode": "diff",
+  "window_size": 100
+}

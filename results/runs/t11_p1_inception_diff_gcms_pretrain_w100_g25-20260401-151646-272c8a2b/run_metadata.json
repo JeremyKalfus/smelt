@@ -1,0 +1,26 @@
+{
+  "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/t11_p1_inception_diff_gcms_pretrain_w100_g25-20260401-151646-272c8a2b/checkpoint_final.pt",
+  "feature_names": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG"
+  ],
+  "gcms_anchor_count": 50,
+  "mode": "gcms_pretrain",
+  "pretraining_objective": "gcms_anchor_alignment_cross_entropy",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t10b_exact_upstream_regression_smoke.json",
+    "gcms_class_map_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/gcms_class_map.json"
+  },
+  "track": "research-extension",
+  "view_mode": "diff",
+  "window_counts": {
+    "test": 502,
+    "train": 2512
+  }
+}

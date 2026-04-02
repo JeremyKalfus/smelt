@@ -1,0 +1,35 @@
+batch_size: 32
+category_map_path: configs/exact-upstream/category_map.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+config_path: /Users/jeremykalfus/CodingProjects/smelt/configs/research-extension/t11_f1_inception_diff_gcms_finetune_w100_g25.yaml
+data_root: /Users/jeremykalfus/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/71bcae740b885be23db5f72933a8bc55c4e18ad7/data
+device: auto
+diff_period: 25
+epochs: 30
+exact_upstream_regression_path: artifacts/methods/t10b_exact_upstream_regression_smoke.json
+experiment_name: t11_f1_inception_diff_gcms_finetune_w100_g25
+gcms_class_map_manifest_path: artifacts/manifests/gcms_class_map.json
+gcms_hidden_dim: null
+grad_clip: 1.0
+lr: 0.0015
+mode: gcms_finetune
+model:
+  activation_name: gelu
+  bottleneck_channels: 32
+  branch_channels: 32
+  dropout: 0.1
+  head_hidden_dim: 128
+  num_blocks: 6
+  residual_interval: 3
+  stem_channels: 64
+num_workers: 0
+output_root: results/runs
+pretrained_checkpoint_path: /Users/jeremykalfus/CodingProjects/smelt/results/runs/t11_p1_inception_diff_gcms_pretrain_w100_g25-20260401-151646-272c8a2b/checkpoint_final.pt
+projection_dim: null
+seed: 42
+stride: 50
+temperature: null
+track: research-extension
+view_mode: diff
+weight_decay: 0.0001
+window_size: 100

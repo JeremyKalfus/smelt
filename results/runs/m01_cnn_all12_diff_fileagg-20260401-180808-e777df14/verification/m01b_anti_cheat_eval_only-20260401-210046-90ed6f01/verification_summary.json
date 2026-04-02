@@ -1,0 +1,14 @@
+{
+  "a1_pass": true,
+  "a2_pass": true,
+  "a3_pass": true,
+  "file_level_summary_paths": {
+    "majority_vote": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14/verification/m01b_anti_cheat_eval_only-20260401-210046-90ed6f01/file_level/majority_vote/summary_metrics.json",
+    "mean_logits": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14/verification/m01b_anti_cheat_eval_only-20260401-210046-90ed6f01/file_level/mean_logits/summary_metrics.json",
+    "mean_probabilities": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14/verification/m01b_anti_cheat_eval_only-20260401-210046-90ed6f01/file_level/mean_probabilities/summary_metrics.json"
+  },
+  "leakage_audit_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14/verification/m01b_anti_cheat_eval_only-20260401-210046-90ed6f01/leakage_audit.json",
+  "predictions_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14/verification/m01b_anti_cheat_eval_only-20260401-210046-90ed6f01/predictions.npz",
+  "summary_metrics_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14/verification/m01b_anti_cheat_eval_only-20260401-210046-90ed6f01/summary_metrics.json",
+  "verification_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14/verification/m01b_anti_cheat_eval_only-20260401-210046-90ed6f01"
+}

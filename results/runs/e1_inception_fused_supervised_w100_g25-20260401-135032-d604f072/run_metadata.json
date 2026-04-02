@@ -1,0 +1,30 @@
+{
+  "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/e1_inception_fused_supervised_w100_g25-20260401-135032-d604f072/checkpoint_final.pt",
+  "feature_names": [
+    "raw_NO2",
+    "raw_C2H5OH",
+    "raw_VOC",
+    "raw_CO",
+    "raw_Alcohol",
+    "raw_LPG",
+    "diff_NO2",
+    "diff_C2H5OH",
+    "diff_VOC",
+    "diff_CO",
+    "diff_Alcohol",
+    "diff_LPG"
+  ],
+  "mode": "supervised_classification",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t09_exact_upstream_regression_smoke.json"
+  },
+  "shuffle_train_labels": false,
+  "track": "research-extension",
+  "view_mode": "fused_raw_diff",
+  "window_counts": {
+    "test": 502,
+    "train": 2512
+  }
+}

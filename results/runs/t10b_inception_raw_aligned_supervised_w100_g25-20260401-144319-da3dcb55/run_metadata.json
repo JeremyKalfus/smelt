@@ -1,0 +1,24 @@
+{
+  "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/t10b_inception_raw_aligned_supervised_w100_g25-20260401-144319-da3dcb55/checkpoint_final.pt",
+  "feature_names": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG"
+  ],
+  "mode": "supervised_classification",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t10b_exact_upstream_regression_smoke.json"
+  },
+  "shuffle_train_labels": false,
+  "track": "research-extension",
+  "view_mode": "raw_aligned",
+  "window_counts": {
+    "test": 502,
+    "train": 2512
+  }
+}

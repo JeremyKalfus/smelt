@@ -1,0 +1,95 @@
+{
+  "acc@1": 67.13147410358566,
+  "acc@5": 94.62151394422311,
+  "class_names": [
+    "allspice",
+    "almond",
+    "angelica",
+    "apple",
+    "asparagus",
+    "avocado",
+    "banana",
+    "brazil_nut",
+    "broccoli",
+    "brussel_sprouts",
+    "cabbage",
+    "cashew",
+    "cauliflower",
+    "chamomile",
+    "chervil",
+    "chestnuts",
+    "chives",
+    "cinnamon",
+    "cloves",
+    "coriander",
+    "cumin",
+    "dill",
+    "garlic",
+    "ginger",
+    "hazelnut",
+    "kiwi",
+    "lemon",
+    "mandarin_orange",
+    "mango",
+    "mint",
+    "mugwort",
+    "mustard",
+    "nutmeg",
+    "oregano",
+    "peach",
+    "peanuts",
+    "pear",
+    "pecans",
+    "pili_nut",
+    "pineapple",
+    "pistachios",
+    "potato",
+    "radish",
+    "saffron",
+    "star_anise",
+    "strawberry",
+    "sweet_potato",
+    "tomato",
+    "turnip",
+    "walnuts"
+  ],
+  "f1_macro": 66.17478151382247,
+  "methods": {
+    "mode": "eval_only_replay",
+    "original_run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01_cnn_all12_diff_fileagg-20260401-180808-e777df14"
+  },
+  "per_category": [
+    {
+      "acc@1": 64.48598130841121,
+      "acc@5": 95.32710280373831,
+      "category": "nuts",
+      "n": 107
+    },
+    {
+      "acc@1": 68.36734693877551,
+      "acc@5": 95.91836734693877,
+      "category": "spices",
+      "n": 98
+    },
+    {
+      "acc@1": 62.244897959183675,
+      "acc@5": 88.77551020408163,
+      "category": "herbs",
+      "n": 98
+    },
+    {
+      "acc@1": 81.81818181818183,
+      "acc@5": 97.97979797979798,
+      "category": "fruits",
+      "n": 99
+    },
+    {
+      "acc@1": 59.0,
+      "acc@5": 95.0,
+      "category": "vegetables",
+      "n": 100
+    }
+  ],
+  "precision_macro": 71.08046588774143,
+  "recall_macro": 66.88888888888889
+}
