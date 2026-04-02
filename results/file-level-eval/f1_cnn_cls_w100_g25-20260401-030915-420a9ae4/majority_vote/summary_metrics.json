@@ -1,0 +1,97 @@
+{
+  "acc@1": 66.0,
+  "acc@5": 92.0,
+  "class_names": [
+    "allspice",
+    "almond",
+    "angelica",
+    "apple",
+    "asparagus",
+    "avocado",
+    "banana",
+    "brazil_nut",
+    "broccoli",
+    "brussel_sprouts",
+    "cabbage",
+    "cashew",
+    "cauliflower",
+    "chamomile",
+    "chervil",
+    "chestnuts",
+    "chives",
+    "cinnamon",
+    "cloves",
+    "coriander",
+    "cumin",
+    "dill",
+    "garlic",
+    "ginger",
+    "hazelnut",
+    "kiwi",
+    "lemon",
+    "mandarin_orange",
+    "mango",
+    "mint",
+    "mugwort",
+    "mustard",
+    "nutmeg",
+    "oregano",
+    "peach",
+    "peanuts",
+    "pear",
+    "pecans",
+    "pili_nut",
+    "pineapple",
+    "pistachios",
+    "potato",
+    "radish",
+    "saffron",
+    "star_anise",
+    "strawberry",
+    "sweet_potato",
+    "tomato",
+    "turnip",
+    "walnuts"
+  ],
+  "f1_macro": 59.66666666666666,
+  "methods": {
+    "source_run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/f1_cnn_cls_w100_g25-20260401-030915-420a9ae4",
+    "track": "exact-upstream",
+    "view_mode": "diff",
+    "window_prediction_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/file-level-eval/f1_cnn_cls_w100_g25-20260401-030915-420a9ae4/window_predictions.npz"
+  },
+  "per_category": [
+    {
+      "acc@1": 70.0,
+      "acc@5": 100.0,
+      "category": "nuts",
+      "n": 10
+    },
+    {
+      "acc@1": 60.0,
+      "acc@5": 100.0,
+      "category": "spices",
+      "n": 10
+    },
+    {
+      "acc@1": 70.0,
+      "acc@5": 80.0,
+      "category": "herbs",
+      "n": 10
+    },
+    {
+      "acc@1": 100.0,
+      "acc@5": 100.0,
+      "category": "fruits",
+      "n": 10
+    },
+    {
+      "acc@1": 30.0,
+      "acc@5": 80.0,
+      "category": "vegetables",
+      "n": 10
+    }
+  ],
+  "precision_macro": 57.06666666666666,
+  "recall_macro": 66.0
+}

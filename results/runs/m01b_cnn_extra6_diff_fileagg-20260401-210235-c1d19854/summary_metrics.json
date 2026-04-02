@@ -1,0 +1,131 @@
+{
+  "acc@1": 42.03187250996016,
+  "acc@5": 79.4820717131474,
+  "class_names": [
+    "allspice",
+    "almond",
+    "angelica",
+    "apple",
+    "asparagus",
+    "avocado",
+    "banana",
+    "brazil_nut",
+    "broccoli",
+    "brussel_sprouts",
+    "cabbage",
+    "cashew",
+    "cauliflower",
+    "chamomile",
+    "chervil",
+    "chestnuts",
+    "chives",
+    "cinnamon",
+    "cloves",
+    "coriander",
+    "cumin",
+    "dill",
+    "garlic",
+    "ginger",
+    "hazelnut",
+    "kiwi",
+    "lemon",
+    "mandarin_orange",
+    "mango",
+    "mint",
+    "mugwort",
+    "mustard",
+    "nutmeg",
+    "oregano",
+    "peach",
+    "peanuts",
+    "pear",
+    "pecans",
+    "pili_nut",
+    "pineapple",
+    "pistachios",
+    "potato",
+    "radish",
+    "saffron",
+    "star_anise",
+    "strawberry",
+    "sweet_potato",
+    "tomato",
+    "turnip",
+    "walnuts"
+  ],
+  "f1_macro": 38.23093231556686,
+  "methods": {
+    "best_validation_epoch": 28,
+    "best_validation_file_acc@1": 70.0,
+    "best_validation_file_acc@5": 90.0,
+    "best_validation_file_f1": 65.36363636363636,
+    "best_validation_window_acc@1": 45.09018036072144,
+    "best_validation_window_acc@5": 82.76553106212425,
+    "best_validation_window_f1": 42.79941174504972,
+    "channel_set": "extra6",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t11_exact_upstream_regression_smoke.json",
+    "feature_names": [
+      "Benzene",
+      "Temperature",
+      "Pressure",
+      "Humidity",
+      "Gas_Resistance",
+      "Altitude"
+    ],
+    "primary_file_aggregator": "mean_logits",
+    "retained_columns": [
+      "Benzene",
+      "Temperature",
+      "Pressure",
+      "Humidity",
+      "Gas_Resistance",
+      "Altitude"
+    ],
+    "setting_note": "moonshot-enhanced-setting",
+    "test_window_count": 502,
+    "track": "moonshot-enhanced-setting",
+    "train_standardization_shape": [
+      201300,
+      6
+    ],
+    "train_window_count": 2013,
+    "validation_file_aggregator": "mean_logits",
+    "validation_files_per_class": 1,
+    "validation_window_count": 499,
+    "view_mode": "diff_extra6"
+  },
+  "per_category": [
+    {
+      "acc@1": 36.44859813084112,
+      "acc@5": 73.83177570093457,
+      "category": "nuts",
+      "n": 107
+    },
+    {
+      "acc@1": 64.28571428571429,
+      "acc@5": 98.9795918367347,
+      "category": "spices",
+      "n": 98
+    },
+    {
+      "acc@1": 39.795918367346935,
+      "acc@5": 78.57142857142857,
+      "category": "herbs",
+      "n": 98
+    },
+    {
+      "acc@1": 31.313131313131315,
+      "acc@5": 65.65656565656566,
+      "category": "fruits",
+      "n": 99
+    },
+    {
+      "acc@1": 39.0,
+      "acc@5": 81.0,
+      "category": "vegetables",
+      "n": 100
+    }
+  ],
+  "precision_macro": 39.938443836864884,
+  "recall_macro": 42.15151515151515
+}

@@ -1,0 +1,55 @@
+{
+  "best_checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/checkpoint_best.pt",
+  "best_validation_summary": {
+    "epoch": 45,
+    "file_acc@1": 10.0,
+    "file_acc@5": 18.0,
+    "file_macro_f1": 6.800000000000001,
+    "window_acc@1": 3.2064128256513023,
+    "window_acc@5": 12.825651302605209,
+    "window_macro_f1": 3.041772606478489
+  },
+  "channel_set": "all12",
+  "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/checkpoint_final.pt",
+  "feature_names": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG",
+    "Benzene",
+    "Temperature",
+    "Pressure",
+    "Humidity",
+    "Gas_Resistance",
+    "Altitude"
+  ],
+  "file_level_metrics_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/file_level_metrics_comparison.json",
+  "file_level_primary_report": {
+    "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/file_level/mean_logits/confusion_matrix.csv",
+    "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/file_level/mean_logits/per_category_accuracy.csv",
+    "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/file_level/mean_logits/per_file_predictions.csv",
+    "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/file_level/mean_logits",
+    "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/file_level/mean_logits/summary_metrics.json"
+  },
+  "mode": "supervised_classification",
+  "primary_file_aggregator": "mean_logits",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t11_exact_upstream_regression_smoke.json"
+  },
+  "setting_note": "moonshot-enhanced-setting",
+  "shuffle_train_labels": true,
+  "track": "moonshot-enhanced-setting",
+  "validation_file_aggregator": "mean_logits",
+  "validation_files_per_class": 1,
+  "validation_split_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01b_cnn_all12_diff_fileagg_shuffled-20260401-210055-6e21476b/validation_split.json",
+  "view_mode": "diff_all12",
+  "window_counts": {
+    "test": 502,
+    "train": 2013,
+    "validation": 499
+  }
+}

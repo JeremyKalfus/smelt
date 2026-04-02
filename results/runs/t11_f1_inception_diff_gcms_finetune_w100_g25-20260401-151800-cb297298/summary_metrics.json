@@ -1,0 +1,123 @@
+{
+  "acc@1": 44.6215139442231,
+  "acc@5": 78.68525896414343,
+  "class_names": [
+    "allspice",
+    "almond",
+    "angelica",
+    "apple",
+    "asparagus",
+    "avocado",
+    "banana",
+    "brazil_nut",
+    "broccoli",
+    "brussel_sprouts",
+    "cabbage",
+    "cashew",
+    "cauliflower",
+    "chamomile",
+    "chervil",
+    "chestnuts",
+    "chives",
+    "cinnamon",
+    "cloves",
+    "coriander",
+    "cumin",
+    "dill",
+    "garlic",
+    "ginger",
+    "hazelnut",
+    "kiwi",
+    "lemon",
+    "mandarin_orange",
+    "mango",
+    "mint",
+    "mugwort",
+    "mustard",
+    "nutmeg",
+    "oregano",
+    "peach",
+    "peanuts",
+    "pear",
+    "pecans",
+    "pili_nut",
+    "pineapple",
+    "pistachios",
+    "potato",
+    "radish",
+    "saffron",
+    "star_anise",
+    "strawberry",
+    "sweet_potato",
+    "tomato",
+    "turnip",
+    "walnuts"
+  ],
+  "f1_macro": 41.171469141963726,
+  "methods": {
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/t10b_exact_upstream_regression_smoke.json",
+    "feature_names": [
+      "NO2",
+      "C2H5OH",
+      "VOC",
+      "CO",
+      "Alcohol",
+      "LPG"
+    ],
+    "gcms_anchor_count": 50,
+    "gcms_class_map_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/gcms_class_map.json",
+    "gcms_feature_count": 17,
+    "mode": "gcms_finetune",
+    "pretrained_checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/t11_p1_inception_diff_gcms_pretrain_w100_g25-20260401-151646-272c8a2b/checkpoint_final.pt",
+    "retained_columns": [
+      "NO2",
+      "C2H5OH",
+      "VOC",
+      "CO",
+      "Alcohol",
+      "LPG"
+    ],
+    "test_window_count": 502,
+    "track": "research-extension",
+    "train_standardization_shape": [
+      251200,
+      6
+    ],
+    "train_window_count": 2512,
+    "view_mode": "diff"
+  },
+  "per_category": [
+    {
+      "acc@1": 47.66355140186916,
+      "acc@5": 88.78504672897196,
+      "category": "nuts",
+      "n": 107
+    },
+    {
+      "acc@1": 48.97959183673469,
+      "acc@5": 81.63265306122449,
+      "category": "spices",
+      "n": 98
+    },
+    {
+      "acc@1": 33.6734693877551,
+      "acc@5": 66.3265306122449,
+      "category": "herbs",
+      "n": 98
+    },
+    {
+      "acc@1": 54.54545454545454,
+      "acc@5": 79.7979797979798,
+      "category": "fruits",
+      "n": 99
+    },
+    {
+      "acc@1": 38.0,
+      "acc@5": 76.0,
+      "category": "vegetables",
+      "n": 100
+    }
+  ],
+  "precision_macro": 43.35072117425058,
+  "recall_macro": 44.25050505050505
+}
