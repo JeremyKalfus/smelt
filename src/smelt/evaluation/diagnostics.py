@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import yaml
 
 from smelt.models import ExactResearchInceptionClassifier
@@ -241,6 +242,10 @@ def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
         "train_window_count": stringify(resolve_window_count(summary, metadata, "train")),
         "validation_window_count": stringify(resolve_window_count(summary, metadata, "validation")),
         "test_window_count": stringify(resolve_window_count(summary, metadata, "test")),
+        "locked_primary_aggregator": stringify(metadata.get("locked_primary_aggregator")),
+        "primary_checkpoint_selection_metric": stringify(
+            metadata.get("primary_checkpoint_selection_metric")
+        ),
         "acc@1": stringify(summary.get("acc@1")),
         "acc@5": stringify(summary.get("acc@5")),
         "macro_precision": stringify(summary.get("precision_macro")),
@@ -270,6 +275,117 @@ def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
         ),
     }
     return entry
+
+
+def build_moonshot_protocol_definition(config_path: Path) -> dict[str, Any]:
+    config = load_yaml_file(config_path)
+    return {
+        "track": str(config.get("track", "")),
+        "model_family": str(config.get("model_name", "")),
+        "channel_set": str(config.get("channel_set", "")),
+        "view_mode": f"diff_{config.get('channel_set', '')}",
+        "g": int(config.get("diff_period", 0) or 0),
+        "window_size": int(config.get("window_size", 0) or 0),
+        "stride": int(config.get("stride", 0) or 0),
+        "grouped_validation_policy": {
+            "type": "grouped_by_file_within_training_split",
+            "validation_files_per_class": int(config.get("validation_files_per_class", 0) or 0),
+        },
+        "standardization_policy": "train_only_standardization",
+        "locked_aggregator_rule": {
+            "source": "validation_only",
+            "candidates": list(config.get("candidate_file_aggregators", [])),
+            "primary": "best_validation_file_acc@1",
+            "tie_break": "validation_file_macro_f1",
+            "final_tie_break_order": [
+                "mean_probabilities",
+                "mean_logits",
+                "majority_vote",
+            ],
+        },
+        "checkpoint_selection_rule": {
+            "source": "validation_only",
+            "primary": "validation_file_acc@1_under_locked_aggregator",
+            "tie_break": "validation_file_macro_f1_under_locked_aggregator",
+        },
+        "primary_metric": "file_acc@1_using_locked_aggregator",
+        "secondary_metric": "window_acc@1",
+    }
+
+
+def build_moonshot_locked_run_row(run_dir: Path) -> dict[str, str]:
+    registry_entry = build_run_registry_entry(run_dir)
+    metadata = load_json_file(run_dir / "run_metadata.json")
+    locked_primary_aggregator = str(metadata.get("locked_primary_aggregator", ""))
+    file_primary_report = metadata.get("file_level_primary_report", {})
+    validation_primary_report = metadata.get("validation_file_level_primary_report", {})
+    test_summary = (
+        load_json_file(Path(str(file_primary_report.get("summary_json", ""))))
+        if file_primary_report.get("summary_json")
+        else {}
+    )
+    validation_summary = (
+        load_json_file(Path(str(validation_primary_report.get("summary_json", ""))))
+        if validation_primary_report.get("summary_json")
+        else {}
+    )
+    return {
+        **registry_entry,
+        "locked_primary_aggregator": locked_primary_aggregator,
+        "primary_checkpoint_selection_metric": str(
+            metadata.get("primary_checkpoint_selection_metric", "")
+        ),
+        "validation_file_acc@1": stringify(validation_summary.get("acc@1")),
+        "validation_file_acc@5": stringify(validation_summary.get("acc@5")),
+        "validation_file_macro_f1": stringify(validation_summary.get("f1_macro")),
+        "validation_file_summary_metrics_path": str(
+            validation_primary_report.get("summary_json", "")
+        ),
+        "file_acc@1_locked": stringify(test_summary.get("acc@1")),
+        "file_acc@5_locked": stringify(test_summary.get("acc@5")),
+        "file_macro_f1_locked": stringify(test_summary.get("f1_macro")),
+        "file_macro_precision_locked": stringify(test_summary.get("precision_macro")),
+        "file_macro_recall_locked": stringify(test_summary.get("recall_macro")),
+        "file_summary_metrics_path_locked": str(file_primary_report.get("summary_json", "")),
+        "file_confusion_matrix_path_locked": str(
+            file_primary_report.get("confusion_matrix_csv", "")
+        ),
+        "file_per_category_accuracy_path_locked": str(
+            file_primary_report.get("per_category_accuracy_csv", "")
+        ),
+        "file_predictions_path_locked": str(
+            file_primary_report.get("per_file_predictions_csv", "")
+        ),
+    }
+
+
+def build_moonshot_seed_summary(
+    rows: tuple[dict[str, str], ...] | list[dict[str, str]],
+) -> dict[str, Any]:
+    if not rows:
+        raise DiagnosticExportError("at least one locked moonshot row is required")
+    metric_keys = (
+        "acc@1",
+        "acc@5",
+        "macro_f1",
+        "file_acc@1_locked",
+        "file_acc@5_locked",
+        "file_macro_f1_locked",
+    )
+    summary: dict[str, Any] = {
+        "n_runs": len(rows),
+        "run_ids": [row["run_id"] for row in rows],
+        "locked_primary_aggregators": [row["locked_primary_aggregator"] for row in rows],
+    }
+    for metric_key in metric_keys:
+        values = np.asarray([float(row[metric_key]) for row in rows], dtype=np.float64)
+        summary[metric_key] = {
+            "mean": float(values.mean()),
+            "std": float(values.std(ddof=0)),
+            "min": float(values.min()),
+            "max": float(values.max()),
+        }
+    return summary
 
 
 def build_metrics_long_rows(entries: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -444,6 +560,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("m01c_"):
+        return "m01c"
     if run_id.startswith("m01b_"):
         return "m01b"
     if run_id.startswith("m01_"):

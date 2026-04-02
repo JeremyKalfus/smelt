@@ -25,6 +25,11 @@ FILE_LEVEL_AGGREGATORS = (
     MEAN_PROBABILITIES_AGGREGATOR,
     MAJORITY_VOTE_AGGREGATOR,
 )
+LOCKED_AGGREGATOR_TIEBREAK_ORDER = (
+    MEAN_PROBABILITIES_AGGREGATOR,
+    MEAN_LOGITS_AGGREGATOR,
+    MAJORITY_VOTE_AGGREGATOR,
+)
 
 
 class FileLevelAggregationError(Exception):
@@ -126,6 +131,41 @@ PredictionBundle = WindowPredictionBundle
 AggregatedPredictionBundle = FileLevelAggregationResult
 FileLevelEvaluationError = FileLevelAggregationError
 FileLevelArtifactPaths = FileLevelReportPaths
+
+
+@dataclass(slots=True)
+class AggregatorSelectionCandidate:
+    aggregator: str
+    acc_at_1: float
+    f1_macro: float
+
+
+def normalize_aggregator_candidates(aggregators: tuple[str, ...] | list[str]) -> tuple[str, ...]:
+    normalized = tuple(normalize_aggregator_name(value) for value in aggregators)
+    if not normalized:
+        raise FileLevelAggregationError("at least one file-level aggregator is required")
+    invalid = sorted(set(normalized) - set(FILE_LEVEL_AGGREGATORS))
+    if invalid:
+        raise FileLevelAggregationError(
+            f"unsupported file-level aggregators {invalid!r}; expected {FILE_LEVEL_AGGREGATORS}"
+        )
+    return tuple(dict.fromkeys(normalized))
+
+
+def select_validation_locked_aggregator(
+    candidates: tuple[AggregatorSelectionCandidate, ...] | list[AggregatorSelectionCandidate],
+) -> str:
+    if not candidates:
+        raise FileLevelAggregationError("at least one aggregator candidate is required")
+    tie_order = {name: index for index, name in enumerate(LOCKED_AGGREGATOR_TIEBREAK_ORDER)}
+    return min(
+        candidates,
+        key=lambda candidate: (
+            -candidate.acc_at_1,
+            -candidate.f1_macro,
+            tie_order.get(candidate.aggregator, len(LOCKED_AGGREGATOR_TIEBREAK_ORDER)),
+        ),
+    ).aggregator
 
 
 def build_window_prediction_bundle(
