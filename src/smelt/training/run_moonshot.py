@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -26,12 +27,15 @@ from smelt.datasets import (
 )
 from smelt.evaluation import (
     FILE_LEVEL_AGGREGATORS,
+    AggregatorSelectionCandidate,
     FileLevelAggregationResult,
     aggregate_file_level_metrics,
     build_window_prediction_bundle,
     export_classification_report,
     export_file_level_report,
     load_category_mapping,
+    normalize_aggregator_candidates,
+    select_validation_locked_aggregator,
     write_window_prediction_bundle,
 )
 from smelt.models import ExactUpstreamCnnClassifier
@@ -84,6 +88,8 @@ class MoonshotRunConfig:
     scheduler_name: str
     scheduler_t_max: int
     scheduler_eta_min: float
+    locked_protocol: bool
+    candidate_file_aggregators: tuple[str, ...]
     primary_file_aggregator: str
     validation_file_aggregator: str
     channel_set: str
@@ -127,7 +133,21 @@ class MoonshotHistoryRow:
     validation_window_f1: float
     validation_file_acc_at_1: float
     validation_file_f1: float
+    validation_primary_aggregator: str
     is_best: bool
+
+
+@dataclass(slots=True)
+class AggregatorCheckpointSelection:
+    aggregator: str
+    epoch: int
+    checkpoint_path: Path
+    validation_file_acc_at_1: float
+    validation_file_acc_at_5: float
+    validation_file_f1: float
+    validation_window_acc_at_1: float
+    validation_window_acc_at_5: float
+    validation_window_f1: float
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -157,6 +177,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"test_window_count: {prepared.test_window_count}")
     print(f"feature_count: {len(prepared.feature_names)}")
     print(f"channel_set: {prepared.channel_set}")
+    metadata = run_dir / "run_metadata.json"
+    if metadata.is_file():
+        payload = json.loads(metadata.read_text(encoding="utf-8"))
+        print(f"locked_primary_aggregator: {payload.get('locked_primary_aggregator', '')}")
     return 0
 
 
@@ -207,8 +231,8 @@ def run_moonshot(
         num_workers=config.num_workers,
     )
 
-    best_checkpoint_path = run_dir / "checkpoint_best.pt"
-    history = train_moonshot_classifier(
+    checkpoint_dir = run_dir / "checkpoint_candidates"
+    training_result = train_moonshot_classifier(
         model=model,
         train_loader=train_loader,
         validation_loader=validation_loader,
@@ -224,16 +248,38 @@ def run_moonshot(
         scheduler_name=config.scheduler_name,
         scheduler_t_max=config.scheduler_t_max,
         scheduler_eta_min=config.scheduler_eta_min,
+        locked_protocol=config.locked_protocol,
+        candidate_file_aggregators=config.candidate_file_aggregators,
         validation_file_aggregator=config.validation_file_aggregator,
-        checkpoint_path=best_checkpoint_path,
+        checkpoint_dir=checkpoint_dir,
         config_payload=config.to_dict(),
     )
+    history = training_result["history"]
+    best_selection = training_result["best_selection"]
+    locked_primary_aggregator = training_result["locked_primary_aggregator"]
 
-    best_checkpoint = torch.load(best_checkpoint_path, map_location="cpu")
+    best_checkpoint_path = run_dir / "checkpoint_best.pt"
+    best_checkpoint = torch.load(best_selection.checkpoint_path, map_location="cpu")
     model.load_state_dict(best_checkpoint["model_state_dict"])
+    torch.save(best_checkpoint, best_checkpoint_path)
     checkpoint_path = run_dir / "checkpoint_final.pt"
     torch.save(best_checkpoint, checkpoint_path)
 
+    validation_evaluation = collect_evaluation_outputs(
+        model=model,
+        data_loader=validation_loader,
+        device=device,
+        class_names=prepared.class_names,
+        category_mapping=category_mapping,
+    )
+    validation_bundle = build_window_prediction_bundle(
+        class_names=validation_evaluation.metrics.class_names,
+        true_labels=validation_evaluation.true_labels,
+        predicted_labels=validation_evaluation.predicted_labels,
+        topk_indices=validation_evaluation.topk_indices,
+        logits=validation_evaluation.logits,
+        windows=prepared.standardized_validation_split.windows,
+    )
     test_evaluation = collect_evaluation_outputs(
         model=model,
         data_loader=test_loader,
@@ -259,8 +305,13 @@ def run_moonshot(
             "feature_names": list(prepared.feature_names),
             "retained_columns": list(prepared.feature_names),
             "validation_files_per_class": config.validation_files_per_class,
-            "primary_file_aggregator": config.primary_file_aggregator,
-            "validation_file_aggregator": config.validation_file_aggregator,
+            "locked_protocol": config.locked_protocol,
+            "candidate_file_aggregators": list(config.candidate_file_aggregators),
+            "primary_file_aggregator": locked_primary_aggregator,
+            "validation_file_aggregator": locked_primary_aggregator,
+            "primary_checkpoint_selection_metric": (
+                "validation_file_acc@1_then_validation_file_macro_f1"
+            ),
             "best_validation_epoch": int(best_checkpoint.get("epoch", 0)),
             "best_validation_window_acc@1": float(
                 best_checkpoint.get("best_validation_window_acc@1", 0.0)
@@ -292,10 +343,49 @@ def run_moonshot(
     )
     write_window_prediction_bundle(run_dir / "predictions.npz", test_bundle)
 
+    validation_file_level_rows: list[dict[str, str]] = []
     file_level_rows: list[dict[str, str]] = []
     primary_file_metrics = None
     primary_paths: dict[str, str] | None = None
-    for aggregator in FILE_LEVEL_AGGREGATORS:
+    validation_paths: dict[str, dict[str, str]] = {}
+    for aggregator in config.candidate_file_aggregators:
+        validation_result = aggregate_file_level_metrics(
+            bundle=validation_bundle,
+            category_mapping=category_mapping,
+            aggregator=aggregator,
+        )
+        validation_report_paths = export_file_level_report(
+            output_root=run_dir / "validation_file_level",
+            run_name=aggregator,
+            result=validation_result,
+            methods_summary={
+                "track": MOONSHOT_TRACK,
+                "split": "validation",
+                "view_mode": f"diff_{config.channel_set}",
+                "channel_set": config.channel_set,
+                "setting_note": MOONSHOT_TRACK,
+                "locked_primary_aggregator": locked_primary_aggregator,
+                "primary_checkpoint_selection_metric": (
+                    "validation_file_acc@1_then_validation_file_macro_f1"
+                ),
+            },
+        )
+        validation_paths[aggregator] = validation_report_paths.to_dict()
+        validation_file_level_rows.append(
+            build_file_level_summary_row(
+                run_id=run_dir.name,
+                track=MOONSHOT_TRACK,
+                model_family=config.model_name,
+                view_mode=f"diff_{config.channel_set}",
+                channel_set=config.channel_set,
+                diff_period=config.diff_period,
+                window_size=config.window_size,
+                stride=prepared.standardized_validation_split.stride,
+                window_metrics=validation_evaluation.metrics,
+                file_result=validation_result,
+                report_paths=validation_report_paths,
+            ),
+        )
         file_result = aggregate_file_level_metrics(
             bundle=test_bundle,
             category_mapping=category_mapping,
@@ -310,6 +400,10 @@ def run_moonshot(
                 "view_mode": f"diff_{config.channel_set}",
                 "channel_set": config.channel_set,
                 "setting_note": MOONSHOT_TRACK,
+                "locked_primary_aggregator": locked_primary_aggregator,
+                "primary_checkpoint_selection_metric": (
+                    "validation_file_acc@1_then_validation_file_macro_f1"
+                ),
                 "window_level_acc@1": test_evaluation.metrics.acc_at_1,
                 "window_level_acc@5": test_evaluation.metrics.acc_at_5,
                 "window_level_f1_macro": test_evaluation.metrics.f1_macro,
@@ -330,7 +424,7 @@ def run_moonshot(
                 report_paths=report_paths,
             ),
         )
-        if aggregator == config.primary_file_aggregator:
+        if aggregator == locked_primary_aggregator:
             primary_file_metrics = file_result.metrics
             primary_paths = report_paths.to_dict()
     if primary_file_metrics is None or primary_paths is None:
@@ -338,9 +432,39 @@ def run_moonshot(
 
     file_level_csv = run_dir / "file_level_metrics_comparison.csv"
     file_level_json = run_dir / "file_level_metrics_comparison.json"
+    validation_file_level_csv = run_dir / "validation_file_level_metrics_comparison.csv"
+    validation_file_level_json = run_dir / "validation_file_level_metrics_comparison.json"
+    selection_json = run_dir / "locked_aggregator_selection.json"
     validation_split_json = run_dir / "validation_split.json"
     write_dict_rows_csv(file_level_csv, file_level_rows)
     write_json(file_level_json, {"rows": file_level_rows})
+    write_dict_rows_csv(validation_file_level_csv, validation_file_level_rows)
+    write_json(validation_file_level_json, {"rows": validation_file_level_rows})
+    write_json(
+        selection_json,
+        {
+            "locked_protocol": config.locked_protocol,
+            "candidate_file_aggregators": list(config.candidate_file_aggregators),
+            "locked_primary_aggregator": locked_primary_aggregator,
+            "primary_checkpoint_selection_metric": (
+                "validation_file_acc@1_then_validation_file_macro_f1"
+            ),
+            "best_validation_candidates": [
+                {
+                    "aggregator": selection["aggregator"],
+                    "epoch": int(selection["epoch"]),
+                    "validation_file_acc@1": float(selection["validation_file_acc_at_1"]),
+                    "validation_file_acc@5": float(selection["validation_file_acc_at_5"]),
+                    "validation_file_macro_f1": float(selection["validation_file_f1"]),
+                    "validation_window_acc@1": float(selection["validation_window_acc_at_1"]),
+                    "validation_window_acc@5": float(selection["validation_window_acc_at_5"]),
+                    "validation_window_macro_f1": float(selection["validation_window_f1"]),
+                    "checkpoint_path": selection["checkpoint_path"],
+                }
+                for selection in training_result["best_candidates"]
+            ],
+        },
+    )
     write_json(
         validation_split_json,
         {
@@ -382,8 +506,15 @@ def run_moonshot(
             "best_checkpoint_path": str(best_checkpoint_path.resolve()),
             "validation_files_per_class": config.validation_files_per_class,
             "shuffle_train_labels": config.shuffle_train_labels,
-            "primary_file_aggregator": config.primary_file_aggregator,
-            "validation_file_aggregator": config.validation_file_aggregator,
+            "locked_protocol": config.locked_protocol,
+            "candidate_file_aggregators": list(config.candidate_file_aggregators),
+            "locked_primary_aggregator": locked_primary_aggregator,
+            "primary_file_aggregator": locked_primary_aggregator,
+            "validation_file_aggregator": locked_primary_aggregator,
+            "primary_checkpoint_selection_metric": (
+                "validation_file_acc@1_then_validation_file_macro_f1"
+            ),
+            "aggregator_selection_source": "validation_only",
             "best_validation_summary": {
                 "epoch": int(best_checkpoint.get("epoch", 0)),
                 "window_acc@1": float(best_checkpoint.get("best_validation_window_acc@1", 0.0)),
@@ -394,7 +525,10 @@ def run_moonshot(
                 "file_macro_f1": float(best_checkpoint.get("best_validation_file_f1", 0.0)),
             },
             "file_level_metrics_path": str(file_level_json.resolve()),
+            "validation_file_level_metrics_path": str(validation_file_level_json.resolve()),
             "file_level_primary_report": primary_paths,
+            "validation_file_level_primary_report": validation_paths[locked_primary_aggregator],
+            "locked_aggregator_selection_path": str(selection_json.resolve()),
             "validation_split_path": str(validation_split_json.resolve()),
             "setting_note": MOONSHOT_TRACK,
         },
@@ -443,8 +577,6 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         "scheduler_name",
         "scheduler_t_max",
         "scheduler_eta_min",
-        "primary_file_aggregator",
-        "validation_file_aggregator",
         "model_name",
         "model",
     }
@@ -455,9 +587,23 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         raise MoonshotRunError(f"unsupported track for moonshot runner: {payload['track']!r}")
     if payload["model_name"] != "cnn":
         raise MoonshotRunError("moonshot m01 only supports cnn model_name")
-    for aggregator_key in ("primary_file_aggregator", "validation_file_aggregator"):
-        if payload[aggregator_key] not in FILE_LEVEL_AGGREGATORS:
-            raise MoonshotRunError(f"{aggregator_key} must be one of {FILE_LEVEL_AGGREGATORS}")
+    locked_protocol = bool(payload.get("locked_protocol", False))
+    candidate_file_aggregators = normalize_aggregator_candidates(
+        payload.get("candidate_file_aggregators", FILE_LEVEL_AGGREGATORS)
+    )
+    if locked_protocol:
+        primary_file_aggregator = ""
+        validation_file_aggregator = ""
+    else:
+        for aggregator_key in ("primary_file_aggregator", "validation_file_aggregator"):
+            if aggregator_key not in payload:
+                raise MoonshotRunError(
+                    f"{aggregator_key} is required when locked_protocol is disabled"
+                )
+            if payload[aggregator_key] not in FILE_LEVEL_AGGREGATORS:
+                raise MoonshotRunError(f"{aggregator_key} must be one of {FILE_LEVEL_AGGREGATORS}")
+        primary_file_aggregator = str(payload["primary_file_aggregator"])
+        validation_file_aggregator = str(payload["validation_file_aggregator"])
     model_payload = payload["model"]
     if not isinstance(model_payload, dict):
         raise MoonshotRunError("moonshot cnn model config must be a mapping")
@@ -490,8 +636,10 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         scheduler_name=str(payload["scheduler_name"]),
         scheduler_t_max=int(payload["scheduler_t_max"]),
         scheduler_eta_min=float(payload["scheduler_eta_min"]),
-        primary_file_aggregator=str(payload["primary_file_aggregator"]),
-        validation_file_aggregator=str(payload["validation_file_aggregator"]),
+        locked_protocol=locked_protocol,
+        candidate_file_aggregators=candidate_file_aggregators,
+        primary_file_aggregator=primary_file_aggregator,
+        validation_file_aggregator=validation_file_aggregator,
         channel_set=resolve_moonshot_channel_set(
             str(payload.get("channel_set", MOONSHOT_ALL12_CHANNEL_SET))
         ),
@@ -573,10 +721,12 @@ def train_moonshot_classifier(
     scheduler_name: str,
     scheduler_t_max: int,
     scheduler_eta_min: float,
+    locked_protocol: bool,
+    candidate_file_aggregators: tuple[str, ...],
     validation_file_aggregator: str,
-    checkpoint_path: Path,
+    checkpoint_dir: Path,
     config_payload: dict[str, Any],
-) -> list[MoonshotHistoryRow]:
+) -> dict[str, Any]:
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
     scheduler = build_scheduler(
@@ -585,7 +735,7 @@ def train_moonshot_classifier(
         scheduler_t_max=scheduler_t_max,
         scheduler_eta_min=scheduler_eta_min,
     )
-    best_validation_acc = float("-inf")
+    best_candidates: dict[str, AggregatorCheckpointSelection] = {}
     history: list[MoonshotHistoryRow] = []
     for epoch in range(1, epochs + 1):
         model.train()
@@ -614,37 +764,80 @@ def train_moonshot_classifier(
             class_names=class_names,
             category_mapping=category_mapping,
         )
-        validation_file_metrics = aggregate_file_level_metrics(
-            bundle=build_window_prediction_bundle(
-                class_names=validation_outputs.metrics.class_names,
-                true_labels=validation_outputs.true_labels,
-                predicted_labels=validation_outputs.predicted_labels,
-                topk_indices=validation_outputs.topk_indices,
-                logits=validation_outputs.logits,
-                windows=validation_windows,
-            ),
-            category_mapping=category_mapping,
-            aggregator=validation_file_aggregator,
-        ).metrics
-        current_lr = float(optimizer.param_groups[0]["lr"])
-        is_best = validation_file_metrics.acc_at_1 > best_validation_acc
-        if is_best:
-            best_validation_acc = validation_file_metrics.acc_at_1
-            checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-            torch.save(
-                {
-                    "model_state_dict": model.state_dict(),
-                    "config": config_payload,
-                    "best_validation_file_acc@1": validation_file_metrics.acc_at_1,
-                    "best_validation_file_acc@5": validation_file_metrics.acc_at_5,
-                    "best_validation_file_f1": validation_file_metrics.f1_macro,
-                    "best_validation_window_acc@1": validation_outputs.metrics.acc_at_1,
-                    "best_validation_window_acc@5": validation_outputs.metrics.acc_at_5,
-                    "best_validation_window_f1": validation_outputs.metrics.f1_macro,
-                    "epoch": epoch,
-                },
-                checkpoint_path,
+        validation_bundle = build_window_prediction_bundle(
+            class_names=validation_outputs.metrics.class_names,
+            true_labels=validation_outputs.true_labels,
+            predicted_labels=validation_outputs.predicted_labels,
+            topk_indices=validation_outputs.topk_indices,
+            logits=validation_outputs.logits,
+            windows=validation_windows,
+        )
+        validation_file_results = {
+            aggregator: aggregate_file_level_metrics(
+                bundle=validation_bundle,
+                category_mapping=category_mapping,
+                aggregator=aggregator,
             )
+            for aggregator in (
+                candidate_file_aggregators if locked_protocol else (validation_file_aggregator,)
+            )
+        }
+        epoch_primary_aggregator = (
+            select_validation_locked_aggregator(
+                [
+                    AggregatorSelectionCandidate(
+                        aggregator=aggregator,
+                        acc_at_1=result.metrics.acc_at_1,
+                        f1_macro=result.metrics.f1_macro,
+                    )
+                    for aggregator, result in validation_file_results.items()
+                ]
+            )
+            if locked_protocol
+            else validation_file_aggregator
+        )
+        validation_file_metrics = validation_file_results[epoch_primary_aggregator].metrics
+        current_lr = float(optimizer.param_groups[0]["lr"])
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        for aggregator, result in validation_file_results.items():
+            candidate = AggregatorCheckpointSelection(
+                aggregator=aggregator,
+                epoch=epoch,
+                checkpoint_path=checkpoint_dir / f"{aggregator}.pt",
+                validation_file_acc_at_1=result.metrics.acc_at_1,
+                validation_file_acc_at_5=result.metrics.acc_at_5,
+                validation_file_f1=result.metrics.f1_macro,
+                validation_window_acc_at_1=validation_outputs.metrics.acc_at_1,
+                validation_window_acc_at_5=validation_outputs.metrics.acc_at_5,
+                validation_window_f1=validation_outputs.metrics.f1_macro,
+            )
+            if is_better_validation_checkpoint(candidate, best_candidates.get(aggregator)):
+                best_candidates[aggregator] = candidate
+                torch.save(
+                    {
+                        "model_state_dict": model.state_dict(),
+                        "config": config_payload,
+                        "best_validation_file_acc@1": candidate.validation_file_acc_at_1,
+                        "best_validation_file_acc@5": candidate.validation_file_acc_at_5,
+                        "best_validation_file_f1": candidate.validation_file_f1,
+                        "best_validation_window_acc@1": candidate.validation_window_acc_at_1,
+                        "best_validation_window_acc@5": candidate.validation_window_acc_at_5,
+                        "best_validation_window_f1": candidate.validation_window_f1,
+                        "epoch": candidate.epoch,
+                        "locked_primary_aggregator": aggregator,
+                    },
+                    candidate.checkpoint_path,
+                )
+        selected_candidate = select_best_validation_candidate(
+            best_candidates=best_candidates,
+            locked_protocol=locked_protocol,
+            candidate_file_aggregators=candidate_file_aggregators,
+            validation_file_aggregator=validation_file_aggregator,
+        )
+        is_best = (
+            selected_candidate.epoch == epoch
+            and selected_candidate.aggregator == epoch_primary_aggregator
+        )
         history.append(
             MoonshotHistoryRow(
                 epoch=epoch,
@@ -655,14 +848,83 @@ def train_moonshot_classifier(
                 validation_window_f1=validation_outputs.metrics.f1_macro,
                 validation_file_acc_at_1=validation_file_metrics.acc_at_1,
                 validation_file_f1=validation_file_metrics.f1_macro,
+                validation_primary_aggregator=epoch_primary_aggregator,
                 is_best=is_best,
             )
         )
         if scheduler is not None:
             scheduler.step()
-    if not checkpoint_path.is_file():
+    best_selection = select_best_validation_candidate(
+        best_candidates=best_candidates,
+        locked_protocol=locked_protocol,
+        candidate_file_aggregators=candidate_file_aggregators,
+        validation_file_aggregator=validation_file_aggregator,
+    )
+    if not best_selection.checkpoint_path.is_file():
         raise MoonshotRunError("moonshot training did not produce a best checkpoint")
-    return history
+    return {
+        "history": history,
+        "locked_primary_aggregator": best_selection.aggregator,
+        "best_selection": best_selection,
+        "best_candidates": [
+            {
+                "aggregator": candidate.aggregator,
+                "epoch": candidate.epoch,
+                "checkpoint_path": str(candidate.checkpoint_path.resolve()),
+                "validation_file_acc_at_1": candidate.validation_file_acc_at_1,
+                "validation_file_acc_at_5": candidate.validation_file_acc_at_5,
+                "validation_file_f1": candidate.validation_file_f1,
+                "validation_window_acc_at_1": candidate.validation_window_acc_at_1,
+                "validation_window_acc_at_5": candidate.validation_window_acc_at_5,
+                "validation_window_f1": candidate.validation_window_f1,
+            }
+            for candidate in sorted(best_candidates.values(), key=lambda item: item.aggregator)
+        ],
+    }
+
+
+def is_better_validation_checkpoint(
+    candidate: AggregatorCheckpointSelection,
+    incumbent: AggregatorCheckpointSelection | None,
+) -> bool:
+    if incumbent is None:
+        return True
+    if candidate.validation_file_acc_at_1 > incumbent.validation_file_acc_at_1:
+        return True
+    if candidate.validation_file_acc_at_1 < incumbent.validation_file_acc_at_1:
+        return False
+    if candidate.validation_file_f1 > incumbent.validation_file_f1:
+        return True
+    return False
+
+
+def select_best_validation_candidate(
+    *,
+    best_candidates: dict[str, AggregatorCheckpointSelection],
+    locked_protocol: bool,
+    candidate_file_aggregators: tuple[str, ...],
+    validation_file_aggregator: str,
+) -> AggregatorCheckpointSelection:
+    if not best_candidates:
+        raise MoonshotRunError("moonshot training did not record validation checkpoints")
+    if not locked_protocol:
+        if validation_file_aggregator not in best_candidates:
+            raise MoonshotRunError(
+                f"missing validation checkpoint for aggregator {validation_file_aggregator!r}"
+            )
+        return best_candidates[validation_file_aggregator]
+    locked_aggregator = select_validation_locked_aggregator(
+        [
+            AggregatorSelectionCandidate(
+                aggregator=aggregator,
+                acc_at_1=best_candidates[aggregator].validation_file_acc_at_1,
+                f1_macro=best_candidates[aggregator].validation_file_f1,
+            )
+            for aggregator in candidate_file_aggregators
+            if aggregator in best_candidates
+        ]
+    )
+    return best_candidates[locked_aggregator]
 
 
 def build_scheduler(
@@ -694,6 +956,7 @@ def write_training_history(output_path: Path, history: list[MoonshotHistoryRow])
                 "train_acc@1",
                 "validation_window_acc@1",
                 "validation_window_f1",
+                "validation_primary_aggregator",
                 "validation_file_acc@1",
                 "validation_file_f1",
                 "is_best",
@@ -708,6 +971,7 @@ def write_training_history(output_path: Path, history: list[MoonshotHistoryRow])
                     row.train_acc_at_1,
                     row.validation_window_acc_at_1,
                     row.validation_window_f1,
+                    row.validation_primary_aggregator,
                     row.validation_file_acc_at_1,
                     row.validation_file_f1,
                     str(row.is_best).lower(),

@@ -11,7 +11,7 @@ Execution policy:
 
 ## track separation
 
-All operative artifacts must stay in one of two explicit tracks:
+All operative artifacts must stay in one of three explicit tracks:
 
 - `exact-upstream`
   - configs: `configs/exact-upstream/`
@@ -21,6 +21,10 @@ All operative artifacts must stay in one of two explicit tracks:
   - configs: `configs/research-extension/`
   - docs: `docs/research-extension/`
   - result tables: `results/research-extension/`
+- `moonshot-enhanced-setting`
+  - configs: `configs/moonshot-enhanced/`
+  - docs: `docs/research-extension/`
+  - result tables: `results/tables/` and `results/figdata/` with explicit moonshot naming
 
 Do not mix these names in config files, docs, run names, or table exports.
 

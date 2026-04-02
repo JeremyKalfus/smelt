@@ -1,0 +1,36 @@
+{
+  "channel_set": "all12",
+  "checkpoint_selection_rule": {
+    "primary": "validation_file_acc@1_under_locked_aggregator",
+    "source": "validation_only",
+    "tie_break": "validation_file_macro_f1_under_locked_aggregator"
+  },
+  "g": 25,
+  "grouped_validation_policy": {
+    "type": "grouped_by_file_within_training_split",
+    "validation_files_per_class": 1
+  },
+  "locked_aggregator_rule": {
+    "candidates": [
+      "mean_logits",
+      "mean_probabilities",
+      "majority_vote"
+    ],
+    "final_tie_break_order": [
+      "mean_probabilities",
+      "mean_logits",
+      "majority_vote"
+    ],
+    "primary": "best_validation_file_acc@1",
+    "source": "validation_only",
+    "tie_break": "validation_file_macro_f1"
+  },
+  "model_family": "cnn",
+  "primary_metric": "file_acc@1_using_locked_aggregator",
+  "secondary_metric": "window_acc@1",
+  "standardization_policy": "train_only_standardization",
+  "stride": 50,
+  "track": "moonshot-enhanced-setting",
+  "view_mode": "diff_all12",
+  "window_size": 100
+}
