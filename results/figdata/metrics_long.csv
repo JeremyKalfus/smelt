@@ -89,6 +89,11 @@ all12,25,acc@5,92.62948207171314,cnn,m01c_cnn_all12_diff_locked_seed7-20260402-0
 all12,25,macro_precision,69.78066173592488,cnn,m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738,50,m01c,moonshot-enhanced-setting,diff_all12,100
 all12,25,macro_recall,68.66262626262626,cnn,m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738,50,m01c,moonshot-enhanced-setting,diff_all12,100
 all12,25,macro_f1,67.11099856295442,cnn,m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738,50,m01c,moonshot-enhanced-setting,diff_all12,100
+all12,25,acc@1,62.74900398406375,deep_temporal_resnet,m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6,50,m02,moonshot-enhanced-setting,diff_all12,100
+all12,25,acc@5,93.02788844621513,deep_temporal_resnet,m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6,50,m02,moonshot-enhanced-setting,diff_all12,100
+all12,25,macro_precision,63.622771363483444,deep_temporal_resnet,m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6,50,m02,moonshot-enhanced-setting,diff_all12,100
+all12,25,macro_recall,62.715151515151526,deep_temporal_resnet,m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6,50,m02,moonshot-enhanced-setting,diff_all12,100
+all12,25,macro_f1,61.37575265041328,deep_temporal_resnet,m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6,50,m02,moonshot-enhanced-setting,diff_all12,100
 ,25,acc@1,51.39442231075697,inception,t10b_inception_diff_supervised_w100_g25-20260401-144426-c9f0ef66,50,t10b,research-extension,diff,100
 ,25,acc@5,87.84860557768924,inception,t10b_inception_diff_supervised_w100_g25-20260401-144426-c9f0ef66,50,t10b,research-extension,diff,100
 ,25,macro_precision,54.631826260047674,inception,t10b_inception_diff_supervised_w100_g25-20260401-144426-c9f0ef66,50,t10b,research-extension,diff,100

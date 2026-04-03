@@ -98,7 +98,8 @@ def export_run_registry_artifacts(
         json.dumps({"runs": entries}, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    write_dict_rows_csv(existing_summary_csv, existing_entries)
+    if existing_entries or not existing_summary_csv.exists():
+        write_dict_rows_csv(existing_summary_csv, existing_entries)
     write_dict_rows_csv(metrics_long_csv, metrics_rows)
     write_dict_rows_csv(training_histories_long_csv, history_rows)
     write_dict_rows_csv(file_level_metrics_long_csv, file_level_rows)
@@ -258,6 +259,12 @@ def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
         "checkpoint_path": resolve_artifact_path(run_dir / "checkpoint_final.pt"),
         "training_history_path": resolve_artifact_path(training_history_path),
         "run_metadata_path": resolve_artifact_path(run_dir / "run_metadata.json"),
+        "device": stringify(metadata.get("device", config.get("device", ""))),
+        "batch_size": stringify(config.get("batch_size", "")),
+        "gradient_accumulation_steps": stringify(metadata.get("gradient_accumulation_steps", "")),
+        "effective_batch_size": stringify(metadata.get("effective_batch_size", "")),
+        "parameter_count": stringify(metadata.get("parameter_count", "")),
+        "architecture_summary_path": resolve_artifact_path(run_dir / "architecture_summary.json"),
         "predictions_path": resolve_artifact_path(run_dir / "predictions.npz"),
         "research_view_manifest_path": resolve_artifact_path(research_view_manifest_path),
         "moonshot_view_manifest_path": resolve_artifact_path(moonshot_view_manifest_path),
@@ -386,6 +393,57 @@ def build_moonshot_seed_summary(
             "max": float(values.max()),
         }
     return summary
+
+
+def build_m02_architecture_summary(run_dir: Path) -> dict[str, Any]:
+    summary_path = run_dir / "architecture_summary.json"
+    return load_json_file(summary_path)
+
+
+def build_m02_comparison_row(
+    *,
+    baseline_summary_path: Path,
+    run_dir: Path,
+) -> dict[str, str]:
+    baseline_summary = load_json_file(baseline_summary_path)
+    run_row = build_moonshot_locked_run_row(run_dir)
+    architecture_summary = build_m02_architecture_summary(run_dir)
+    baseline_window_acc = float(baseline_summary["acc@1"]["mean"])
+    baseline_window_f1 = float(baseline_summary["macro_f1"]["mean"])
+    baseline_file_acc = float(baseline_summary["file_acc@1_locked"]["mean"])
+    baseline_file_f1 = float(baseline_summary["file_macro_f1_locked"]["mean"])
+    run_window_acc = float(run_row["acc@1"])
+    run_window_f1 = float(run_row["macro_f1"])
+    run_file_acc = float(run_row["file_acc@1_locked"])
+    run_file_f1 = float(run_row["file_macro_f1_locked"])
+    return {
+        "baseline_label": "m01c_locked_seed_mean",
+        "baseline_window_acc@1_mean": stringify(baseline_window_acc),
+        "baseline_window_macro_f1_mean": stringify(baseline_window_f1),
+        "baseline_file_acc@1_mean": stringify(baseline_file_acc),
+        "baseline_file_macro_f1_mean": stringify(baseline_file_f1),
+        "run_id": run_row["run_id"],
+        "model_family": run_row["model_family"],
+        "channel_set": run_row["channel_set"],
+        "view_mode": run_row["view_mode"],
+        "window_acc@1": run_row["acc@1"],
+        "window_macro_f1": run_row["macro_f1"],
+        "file_acc@1_locked": run_row["file_acc@1_locked"],
+        "file_macro_f1_locked": run_row["file_macro_f1_locked"],
+        "locked_primary_aggregator": run_row["locked_primary_aggregator"],
+        "parameter_count": stringify(architecture_summary.get("parameter_count", "")),
+        "batch_size": run_row["batch_size"],
+        "effective_batch_size": run_row["effective_batch_size"],
+        "device": run_row["device"],
+        "delta_window_acc@1": stringify(run_window_acc - baseline_window_acc),
+        "delta_window_macro_f1": stringify(run_window_f1 - baseline_window_f1),
+        "delta_file_acc@1_locked": stringify(run_file_acc - baseline_file_acc),
+        "delta_file_macro_f1_locked": stringify(run_file_f1 - baseline_file_f1),
+        "resolved_config_path": run_row["resolved_config_path"],
+        "summary_metrics_path": run_row["summary_metrics_path"],
+        "file_summary_metrics_path_locked": run_row["file_summary_metrics_path_locked"],
+        "architecture_summary_path": run_row["architecture_summary_path"],
+    }
 
 
 def build_metrics_long_rows(entries: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -560,6 +618,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("m02_"):
+        return "m02"
     if run_id.startswith("m01c_"):
         return "m01c"
     if run_id.startswith("m01b_"):
