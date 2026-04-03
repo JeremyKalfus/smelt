@@ -218,6 +218,19 @@ These are the exact command contracts the implementation tickets will make runna
   - file ordering is deterministic
 - validate:
   - `pytest -q`
+
+## moonshot locked protocol
+
+After `m01c`, the operative `moonshot-enhanced-setting` mainline is locked to:
+
+- `all12`
+- `diff-only`
+- grouped-by-file validation inside the training split
+- train-only standardization
+- validation-locked file-level aggregator selection
+- validation-only checkpoint selection under the locked aggregator
+
+`m02` may change the backbone and the minimum recipe support needed to run it well, but it must not change this protocol.
   - `python -m smelt.datasets.audit_base --data-root "$SMELT_DATA_ROOT" --emit artifacts/manifests/smellnet_base.json --strict-upstream`
 - blockers: inconsistent csv headers
 - compatibility checkpoint: raw 12-column order and split/file identities match upstream

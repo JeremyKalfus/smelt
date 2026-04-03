@@ -38,7 +38,7 @@ from smelt.evaluation import (
     select_validation_locked_aggregator,
     write_window_prediction_bundle,
 )
-from smelt.models import ExactUpstreamCnnClassifier
+from smelt.models import DeepTemporalResNet1D, ExactUpstreamCnnClassifier
 from smelt.preprocessing import stack_window_values
 
 from .run import (
@@ -88,13 +88,14 @@ class MoonshotRunConfig:
     scheduler_name: str
     scheduler_t_max: int
     scheduler_eta_min: float
+    gradient_accumulation_steps: int
     locked_protocol: bool
     candidate_file_aggregators: tuple[str, ...]
     primary_file_aggregator: str
     validation_file_aggregator: str
     channel_set: str
     model_name: str
-    model: CnnModelConfig
+    model: CnnModelConfig | TemporalResNetModelConfig
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -150,15 +151,51 @@ class AggregatorCheckpointSelection:
     validation_window_f1: float
 
 
+@dataclass(slots=True)
+class TemporalResNetModelConfig:
+    stage_depths: tuple[int, ...]
+    stage_widths: tuple[int, ...]
+    stem_width: int
+    kernel_size: int
+    normalization: str
+    groupnorm_groups: int
+    se_reduction: int
+    head_dropout: float
+    stochastic_depth_probability: float
+
+
+@dataclass(slots=True)
+class MoonshotDeviceSmokeResult:
+    device: str
+    batch_size: int
+    gradient_accumulation_steps: int
+    effective_batch_size: int
+    feature_count: int
+    parameter_count: int
+    model_family: str
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
+    parser.add_argument("--device-smoke-only", action="store_true")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.device_smoke_only:
+        smoke = run_moonshot_device_smoke(args.config)
+        print("status: ok")
+        print(f"device: {smoke.device}")
+        print(f"batch_size: {smoke.batch_size}")
+        print(f"gradient_accumulation_steps: {smoke.gradient_accumulation_steps}")
+        print(f"effective_batch_size: {smoke.effective_batch_size}")
+        print(f"feature_count: {smoke.feature_count}")
+        print(f"parameter_count: {smoke.parameter_count}")
+        print(f"model_family: {smoke.model_family}")
+        return 0
     run_dir, window_metrics, checkpoint_path, prepared, file_metrics = run_moonshot(args.config)
     print(f"run_dir: {run_dir}")
     print(f"checkpoint_path: {checkpoint_path}")
@@ -181,6 +218,10 @@ def main(argv: list[str] | None = None) -> int:
     if metadata.is_file():
         payload = json.loads(metadata.read_text(encoding="utf-8"))
         print(f"locked_primary_aggregator: {payload.get('locked_primary_aggregator', '')}")
+        print(f"device: {payload.get('device', '')}")
+        print(f"parameter_count: {payload.get('parameter_count', '')}")
+        print(f"gradient_accumulation_steps: {payload.get('gradient_accumulation_steps', '')}")
+        print(f"effective_batch_size: {payload.get('effective_batch_size', '')}")
     return 0
 
 
@@ -200,14 +241,12 @@ def run_moonshot(
     category_mapping = load_category_mapping(Path(config.category_map_path))
 
     prepared = prepare_moonshot_tensors(dataset, config)
-    model = ExactUpstreamCnnClassifier(
-        in_channels=prepared.train_windows.shape[2],
+    model, architecture_summary = build_moonshot_model(
+        config=config,
+        input_dim=prepared.train_windows.shape[2],
         num_classes=len(prepared.class_names),
-        channels=config.model.channels,
-        kernel_size=config.model.kernel_size,
-        dropout=config.model.dropout,
-        use_batchnorm=config.model.use_batchnorm,
-    ).to(device)
+    )
+    model = model.to(device)
 
     train_loader = build_dataloader(
         prepared.train_windows,
@@ -248,6 +287,7 @@ def run_moonshot(
         scheduler_name=config.scheduler_name,
         scheduler_t_max=config.scheduler_t_max,
         scheduler_eta_min=config.scheduler_eta_min,
+        gradient_accumulation_steps=config.gradient_accumulation_steps,
         locked_protocol=config.locked_protocol,
         candidate_file_aggregators=config.candidate_file_aggregators,
         validation_file_aggregator=config.validation_file_aggregator,
@@ -501,6 +541,12 @@ def run_moonshot(
                 "validation": prepared.validation_window_count,
                 "test": prepared.test_window_count,
             },
+            "device": str(device),
+            "batch_size": config.batch_size,
+            "gradient_accumulation_steps": config.gradient_accumulation_steps,
+            "effective_batch_size": config.batch_size * config.gradient_accumulation_steps,
+            "parameter_count": int(architecture_summary["parameter_count"]),
+            "architecture_summary_path": str((run_dir / "architecture_summary.json").resolve()),
             "feature_names": list(prepared.feature_names),
             "checkpoint_path": str(checkpoint_path.resolve()),
             "best_checkpoint_path": str(best_checkpoint_path.resolve()),
@@ -533,6 +579,16 @@ def run_moonshot(
             "setting_note": MOONSHOT_TRACK,
         },
     )
+    write_json(
+        run_dir / "architecture_summary.json",
+        {
+            **architecture_summary,
+            "device": str(device),
+            "batch_size": config.batch_size,
+            "gradient_accumulation_steps": config.gradient_accumulation_steps,
+            "effective_batch_size": config.batch_size * config.gradient_accumulation_steps,
+        },
+    )
     write_base_class_vocab_manifest(run_dir / "base_class_vocab.json", vocab_manifest)
     write_moonshot_view_manifest(run_dir / "moonshot_view_manifest.json", prepared.view_manifest)
     return run_dir, test_evaluation.metrics, checkpoint_path, prepared, primary_file_metrics
@@ -543,6 +599,53 @@ def run_moonshot_cnn(
 ) -> tuple[Path, Any, Any, MoonshotPreparedTensors]:
     run_dir, window_metrics, _checkpoint_path, prepared, file_metrics = run_moonshot(config_path)
     return run_dir, window_metrics, file_metrics, prepared
+
+
+def run_moonshot_device_smoke(config_path: Path) -> MoonshotDeviceSmokeResult:
+    config = load_moonshot_run_config(config_path)
+    set_seed(config.seed)
+    device = resolve_device(config.device)
+    dataset = load_base_sensor_dataset(Path(config.data_root))
+    prepared = prepare_moonshot_tensors(dataset, config)
+    model, architecture_summary = build_moonshot_model(
+        config=config,
+        input_dim=prepared.train_windows.shape[2],
+        num_classes=len(prepared.class_names),
+    )
+    model = model.to(device)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=config.lr,
+        weight_decay=config.weight_decay,
+    )
+    criterion = nn.CrossEntropyLoss(label_smoothing=config.label_smoothing)
+    train_loader = build_dataloader(
+        prepared.train_windows,
+        maybe_shuffle_train_labels(prepared.train_labels, config),
+        batch_size=config.batch_size,
+        shuffle=True,
+        num_workers=config.num_workers,
+    )
+    batch_x, batch_y = next(iter(train_loader))
+    batch_x = batch_x.to(device=device, dtype=torch.float32)
+    batch_y = batch_y.to(device=device, dtype=torch.long)
+    model.train()
+    optimizer.zero_grad()
+    logits = model(batch_x)
+    loss = criterion(logits, batch_y)
+    loss.backward()
+    if config.grad_clip > 0:
+        torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)
+    optimizer.step()
+    return MoonshotDeviceSmokeResult(
+        device=str(device),
+        batch_size=config.batch_size,
+        gradient_accumulation_steps=config.gradient_accumulation_steps,
+        effective_batch_size=config.batch_size * config.gradient_accumulation_steps,
+        feature_count=len(prepared.feature_names),
+        parameter_count=int(architecture_summary["parameter_count"]),
+        model_family=config.model_name,
+    )
 
 
 def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
@@ -585,8 +688,10 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         raise MoonshotRunError(f"moonshot config is missing required keys: {missing}")
     if payload["track"] != MOONSHOT_TRACK:
         raise MoonshotRunError(f"unsupported track for moonshot runner: {payload['track']!r}")
-    if payload["model_name"] != "cnn":
-        raise MoonshotRunError("moonshot m01 only supports cnn model_name")
+    if payload["model_name"] not in {"cnn", "deep_temporal_resnet"}:
+        raise MoonshotRunError(
+            "moonshot runner supports only cnn and deep_temporal_resnet model_name values"
+        )
     locked_protocol = bool(payload.get("locked_protocol", False))
     candidate_file_aggregators = normalize_aggregator_candidates(
         payload.get("candidate_file_aggregators", FILE_LEVEL_AGGREGATORS)
@@ -607,9 +712,6 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
     model_payload = payload["model"]
     if not isinstance(model_payload, dict):
         raise MoonshotRunError("moonshot cnn model config must be a mapping")
-    raw_channels = model_payload["channels"]
-    if not isinstance(raw_channels, list) or not raw_channels:
-        raise MoonshotRunError("moonshot cnn channels must be a non-empty list")
     return MoonshotRunConfig(
         track=str(payload["track"]),
         experiment_name=str(payload["experiment_name"]),
@@ -626,6 +728,7 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         lr=float(payload["lr"]),
         weight_decay=float(payload["weight_decay"]),
         grad_clip=float(payload["grad_clip"]),
+        gradient_accumulation_steps=int(payload.get("gradient_accumulation_steps", 1)),
         shuffle_train_labels=bool(payload.get("shuffle_train_labels", False)),
         diff_period=int(payload["diff_period"]),
         window_size=int(payload["window_size"]),
@@ -644,13 +747,98 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
             str(payload.get("channel_set", MOONSHOT_ALL12_CHANNEL_SET))
         ),
         model_name=str(payload["model_name"]),
-        model=CnnModelConfig(
+        model=build_moonshot_model_config(
+            model_name=str(payload["model_name"]),
+            model_payload=model_payload,
+        ),
+    )
+
+
+def build_moonshot_model_config(
+    *,
+    model_name: str,
+    model_payload: dict[str, Any],
+) -> CnnModelConfig | TemporalResNetModelConfig:
+    if model_name == "cnn":
+        raw_channels = model_payload["channels"]
+        if not isinstance(raw_channels, list) or not raw_channels:
+            raise MoonshotRunError("moonshot cnn channels must be a non-empty list")
+        return CnnModelConfig(
             channels=tuple(int(channel) for channel in raw_channels),
             kernel_size=int(model_payload["kernel_size"]),
             dropout=float(model_payload["dropout"]),
             use_batchnorm=bool(model_payload["use_batchnorm"]),
-        ),
-    )
+        )
+    if model_name == "deep_temporal_resnet":
+        raw_stage_depths = model_payload["stage_depths"]
+        raw_stage_widths = model_payload["stage_widths"]
+        if not isinstance(raw_stage_depths, list) or len(raw_stage_depths) != 4:
+            raise MoonshotRunError("deep_temporal_resnet stage_depths must be a 4-item list")
+        if not isinstance(raw_stage_widths, list) or len(raw_stage_widths) != 4:
+            raise MoonshotRunError("deep_temporal_resnet stage_widths must be a 4-item list")
+        return TemporalResNetModelConfig(
+            stage_depths=tuple(int(value) for value in raw_stage_depths),
+            stage_widths=tuple(int(value) for value in raw_stage_widths),
+            stem_width=int(model_payload["stem_width"]),
+            kernel_size=int(model_payload["kernel_size"]),
+            normalization=str(model_payload["normalization"]),
+            groupnorm_groups=int(model_payload["groupnorm_groups"]),
+            se_reduction=int(model_payload["se_reduction"]),
+            head_dropout=float(model_payload["head_dropout"]),
+            stochastic_depth_probability=float(model_payload["stochastic_depth_probability"]),
+        )
+    raise MoonshotRunError(f"unsupported moonshot model_name: {model_name!r}")
+
+
+def build_moonshot_model(
+    *,
+    config: MoonshotRunConfig,
+    input_dim: int,
+    num_classes: int,
+) -> tuple[nn.Module, dict[str, Any]]:
+    if config.model_name == "cnn":
+        if not isinstance(config.model, CnnModelConfig):
+            raise MoonshotRunError("moonshot cnn config is malformed")
+        model = ExactUpstreamCnnClassifier(
+            in_channels=input_dim,
+            num_classes=num_classes,
+            channels=config.model.channels,
+            kernel_size=config.model.kernel_size,
+            dropout=config.model.dropout,
+            use_batchnorm=config.model.use_batchnorm,
+        )
+        parameter_count = int(
+            sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+        )
+        return model, {
+            "model_family": "cnn",
+            "block_type": "conv_stack",
+            "stage_depths": [len(config.model.channels)],
+            "stage_widths": list(config.model.channels),
+            "normalization": "batchnorm" if config.model.use_batchnorm else "none",
+            "parameter_count": parameter_count,
+            "input_feature_count": input_dim,
+            "kernel_size": config.model.kernel_size,
+            "head_dropout": config.model.dropout,
+        }
+    if config.model_name == "deep_temporal_resnet":
+        if not isinstance(config.model, TemporalResNetModelConfig):
+            raise MoonshotRunError("moonshot deep temporal resnet config is malformed")
+        model = DeepTemporalResNet1D(
+            in_channels=input_dim,
+            num_classes=num_classes,
+            stage_depths=config.model.stage_depths,
+            stage_widths=config.model.stage_widths,
+            stem_width=config.model.stem_width,
+            kernel_size=config.model.kernel_size,
+            normalization=config.model.normalization,
+            groupnorm_groups=config.model.groupnorm_groups,
+            se_reduction=config.model.se_reduction,
+            head_dropout=config.model.head_dropout,
+            stochastic_depth_probability=config.model.stochastic_depth_probability,
+        )
+        return model, model.architecture_summary(input_feature_count=input_dim).to_dict()
+    raise MoonshotRunError(f"unsupported moonshot model_name: {config.model_name!r}")
 
 
 def prepare_moonshot_tensors(
@@ -721,12 +909,15 @@ def train_moonshot_classifier(
     scheduler_name: str,
     scheduler_t_max: int,
     scheduler_eta_min: float,
+    gradient_accumulation_steps: int,
     locked_protocol: bool,
     candidate_file_aggregators: tuple[str, ...],
     validation_file_aggregator: str,
     checkpoint_dir: Path,
     config_payload: dict[str, Any],
 ) -> dict[str, Any]:
+    if gradient_accumulation_steps <= 0:
+        raise MoonshotRunError("gradient_accumulation_steps must be positive")
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
     scheduler = build_scheduler(
@@ -742,16 +933,18 @@ def train_moonshot_classifier(
         total_loss = 0.0
         total_correct = 0
         total_examples = 0
-        for batch_x, batch_y in train_loader:
+        optimizer.zero_grad()
+        for batch_index, (batch_x, batch_y) in enumerate(train_loader, start=1):
             batch_x = batch_x.to(device=device, dtype=torch.float32)
             batch_y = batch_y.to(device=device, dtype=torch.long)
-            optimizer.zero_grad()
             logits = model(batch_x)
             loss = criterion(logits, batch_y)
-            loss.backward()
-            if grad_clip > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-            optimizer.step()
+            (loss / gradient_accumulation_steps).backward()
+            if batch_index % gradient_accumulation_steps == 0 or batch_index == len(train_loader):
+                if grad_clip > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+                optimizer.step()
+                optimizer.zero_grad()
             batch_size = batch_y.size(0)
             total_loss += float(loss.item()) * batch_size
             total_correct += int((logits.argmax(dim=1) == batch_y).sum().item())

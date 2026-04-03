@@ -1,0 +1,50 @@
+track: moonshot-enhanced-setting
+experiment_name: m02_deep_temporal_resnet_all12_diff_locked
+data_root: ${SMELT_DATA_ROOT}
+output_root: results/runs
+category_map_path: configs/exact-upstream/category_map.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+exact_upstream_regression_path: artifacts/methods/m01c_exact_upstream_regression_smoke.json
+seed: 42
+device: auto
+epochs: 140
+batch_size: 16
+gradient_accumulation_steps: 4
+lr: 0.002
+weight_decay: 0.0005
+grad_clip: 1.0
+label_smoothing: 0.05
+diff_period: 25
+window_size: 100
+stride: 50
+num_workers: 0
+validation_files_per_class: 1
+locked_protocol: true
+candidate_file_aggregators:
+  - mean_logits
+  - mean_probabilities
+  - majority_vote
+channel_set: all12
+scheduler_name: cosine
+scheduler_t_max: 140
+scheduler_eta_min: 0.00005
+shuffle_train_labels: false
+model_name: deep_temporal_resnet
+model:
+  stage_depths:
+    - 3
+    - 4
+    - 6
+    - 3
+  stage_widths:
+    - 64
+    - 128
+    - 256
+    - 384
+  stem_width: 64
+  kernel_size: 5
+  normalization: groupnorm
+  groupnorm_groups: 8
+  se_reduction: 16
+  head_dropout: 0.2
+  stochastic_depth_probability: 0.05
