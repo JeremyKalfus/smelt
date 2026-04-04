@@ -1,0 +1,18 @@
+{
+  "channel_set": "all12",
+  "class_count": 50,
+  "device": "mps",
+  "embedding_dim": 256,
+  "locked_primary_aggregator": "mean_logits",
+  "sample_count": 3014,
+  "source_checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738/checkpoint_best.pt",
+  "source_run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738",
+  "source_run_id": "m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738",
+  "split_counts": {
+    "test": 502,
+    "train": 2013,
+    "validation": 499
+  },
+  "track": "moonshot-enhanced-setting",
+  "view_mode": "diff_all12"
+}

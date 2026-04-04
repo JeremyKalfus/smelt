@@ -1,0 +1,33 @@
+{
+  "candidates": [
+    {
+      "method": "mean_logits",
+      "validation_file_acc@1": 84.0,
+      "validation_file_acc@5": 98.0,
+      "validation_file_macro_f1": 79.66666666666666
+    },
+    {
+      "method": "mean_probabilities",
+      "validation_file_acc@1": 86.0,
+      "validation_file_acc@5": 100.0,
+      "validation_file_macro_f1": 82.33333333333333
+    },
+    {
+      "method": "vote",
+      "validation_file_acc@1": 90.0,
+      "validation_file_acc@5": 92.0,
+      "validation_file_macro_f1": 87.33333333333333
+    }
+  ],
+  "selected_method": "vote",
+  "selection_rule": {
+    "final_tie_break_order": [
+      "mean_probabilities",
+      "mean_logits",
+      "vote"
+    ],
+    "primary": "validation_file_acc@1",
+    "source": "validation_only",
+    "tie_break": "validation_file_macro_f1"
+  }
+}
