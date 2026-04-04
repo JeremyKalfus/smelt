@@ -362,6 +362,63 @@ def evaluate_file_level_aggregation(
     return result.metrics, result
 
 
+def build_file_level_result_from_predictions(
+    *,
+    aggregator: str,
+    class_names: tuple[str, ...],
+    true_labels: NDArray[np.int64],
+    predicted_labels: NDArray[np.int64],
+    topk_indices: NDArray[np.int64],
+    split_names: tuple[str, ...],
+    relative_paths: tuple[str, ...],
+    absolute_paths: tuple[str, ...],
+    num_windows: NDArray[np.int64],
+    category_mapping: dict[str, str],
+) -> FileLevelAggregationResult:
+    sample_count = int(true_labels.shape[0])
+    if sample_count == 0:
+        raise FileLevelAggregationError("file-level predictions must be non-empty")
+    if predicted_labels.shape != (sample_count,):
+        raise FileLevelAggregationError("predicted_labels shape does not match true_labels")
+    if topk_indices.ndim != 2 or topk_indices.shape[0] != sample_count:
+        raise FileLevelAggregationError("topk_indices shape does not match sample count")
+    if len(split_names) != sample_count:
+        raise FileLevelAggregationError("split_names length does not match sample count")
+    if len(relative_paths) != sample_count:
+        raise FileLevelAggregationError("relative_paths length does not match sample count")
+    if len(absolute_paths) != sample_count:
+        raise FileLevelAggregationError("absolute_paths length does not match sample count")
+    if num_windows.shape != (sample_count,):
+        raise FileLevelAggregationError("num_windows shape does not match sample count")
+
+    rows = tuple(
+        FilePredictionRow(
+            split=split_names[index],
+            relative_path=relative_paths[index],
+            absolute_path=absolute_paths[index],
+            true_class=class_names[int(true_labels[index])],
+            predicted_class=class_names[int(predicted_labels[index])],
+            num_windows=int(num_windows[index]),
+            top5_classes=tuple(
+                class_names[int(class_index)] for class_index in topk_indices[index][:5]
+            ),
+        )
+        for index in range(sample_count)
+    )
+    metrics = compute_classification_metrics(
+        class_names=class_names,
+        true_labels=np.asarray(true_labels, dtype=np.int64),
+        predicted_labels=np.asarray(predicted_labels, dtype=np.int64),
+        topk_indices=np.asarray(topk_indices, dtype=np.int64),
+        category_mapping=category_mapping,
+    )
+    return FileLevelAggregationResult(
+        aggregator=aggregator,
+        metrics=metrics,
+        rows=rows,
+    )
+
+
 def export_file_level_report(
     *,
     output_root: Path,

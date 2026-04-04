@@ -1,0 +1,36 @@
+{
+  "encoder_source_run_ids": [
+    "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+    "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+    "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0"
+  ],
+  "file_acc@1": {
+    "max": 84.0,
+    "mean": 82.0,
+    "min": 80.0,
+    "std": 1.632993161855452
+  },
+  "file_acc@5": {
+    "max": 98.0,
+    "mean": 97.33333333333333,
+    "min": 96.0,
+    "std": 0.9428090415820634
+  },
+  "file_level_model_families": [
+    "attention_deepsets",
+    "attention_deepsets",
+    "attention_deepsets"
+  ],
+  "file_macro_f1": {
+    "max": 79.0,
+    "mean": 76.88888888888889,
+    "min": 75.0,
+    "std": 1.6405358955814893
+  },
+  "n_runs": 3,
+  "run_ids": [
+    "m03_attention_deepsets_frozen_seed11-20260402-131031-4ed921cd",
+    "m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874",
+    "m03_attention_deepsets_frozen_seed37-20260402-131103-bb3b458f"
+  ]
+}

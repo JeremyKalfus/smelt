@@ -9,6 +9,14 @@ Execution policy:
 - stop and fix on the first benchmark-compatibility or leakage failure
 - no silent fallbacks
 
+Current active moonshot ticket:
+
+- `m03`: learned file-level model + locked seed ensemble
+  - keep the locked `m01c` window encoder protocol fixed
+  - reuse frozen `m01c` seed runs via eval-only embedding/logit export
+  - select the primary frozen encoder and ensemble method from validation only
+  - train only the file-level head in this ticket
+
 ## track separation
 
 All operative artifacts must stay in one of three explicit tracks:

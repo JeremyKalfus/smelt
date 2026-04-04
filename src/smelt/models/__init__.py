@@ -1,6 +1,7 @@
 """model package exports."""
 
 from .cnn import ExactUpstreamCnnClassifier
+from .file_level import AttentionDeepSetsClassifier
 from .gcms_pretrain import ResearchGcmsPretrainModel
 from .inception import (
     ExactResearchInceptionClassifier,
@@ -13,6 +14,7 @@ from .transformer import ExactUpstreamTransformerClassifier, SinusoidalPositiona
 
 __all__ = [
     "DeepTemporalResNet1D",
+    "AttentionDeepSetsClassifier",
     "ExactUpstreamCnnClassifier",
     "ExactResearchInceptionClassifier",
     "ExactUpstreamTransformerClassifier",
