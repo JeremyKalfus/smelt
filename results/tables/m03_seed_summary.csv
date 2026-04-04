@@ -1,0 +1,2 @@
+file_acc@1_mean,file_acc@1_std,file_acc@5_mean,file_acc@5_std,file_macro_f1_mean,file_macro_f1_std,n_runs
+82.0,1.632993161855452,97.33333333333333,0.9428090415820634,76.88888888888889,1.6405358955814893,3

@@ -1,0 +1,70 @@
+{
+  "ensemble_selection_rule": {
+    "final_tie_break_order": [
+      "mean_probabilities",
+      "mean_logits",
+      "vote"
+    ],
+    "primary": "validation_file_acc@1",
+    "source": "validation_only",
+    "tie_break": "validation_file_macro_f1"
+  },
+  "frozen_window_encoder_protocol": {
+    "channel_set": "all12",
+    "g": 25,
+    "grouped_validation": "grouped_by_file_within_training_split",
+    "selection_source": "validation_only",
+    "standardization": "train_only",
+    "stride": 50,
+    "view_mode": "diff_all12",
+    "window_size": 100
+  },
+  "learned_file_model": {
+    "checkpoint_selection_rule": {
+      "primary": "validation_file_acc@1",
+      "source": "validation_only",
+      "tie_break": "validation_file_macro_f1"
+    },
+    "encoder_frozen": true,
+    "family": "attention_deepsets",
+    "input_features": "penultimate_window_embeddings",
+    "primary_metric": "file_acc@1"
+  },
+  "primary_encoder_selection": {
+    "candidates": [
+      {
+        "locked_primary_aggregator": "mean_probabilities",
+        "run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77",
+        "run_id": "m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77",
+        "validation_file_acc@1": 86.0,
+        "validation_file_macro_f1": 82.33333333333333
+      },
+      {
+        "locked_primary_aggregator": "majority_vote",
+        "run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+        "run_id": "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+        "validation_file_acc@1": 90.0,
+        "validation_file_macro_f1": 87.33333333333333
+      },
+      {
+        "locked_primary_aggregator": "mean_logits",
+        "run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738",
+        "run_id": "m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738",
+        "validation_file_acc@1": 90.0,
+        "validation_file_macro_f1": 87.33333333333333
+      }
+    ],
+    "locked_primary_aggregator": "majority_vote",
+    "selected_run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+    "selected_run_id": "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+    "selection_rule": {
+      "final_tie_break": "run_id_lexical_ascending",
+      "primary": "validation_file_acc@1_under_locked_aggregator",
+      "source": "validation_only",
+      "tie_break": "validation_file_macro_f1_under_locked_aggregator"
+    },
+    "validation_file_acc@1": 90.0,
+    "validation_file_macro_f1": 87.33333333333333
+  },
+  "track": "moonshot-enhanced-setting"
+}

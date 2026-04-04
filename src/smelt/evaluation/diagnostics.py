@@ -446,6 +446,74 @@ def build_m02_comparison_row(
     }
 
 
+def build_m03_file_level_run_row(run_dir: Path) -> dict[str, str]:
+    registry_entry = build_run_registry_entry(run_dir)
+    metadata = load_json_file(run_dir / "run_metadata.json")
+    file_primary_report = metadata.get("file_level_primary_report", {})
+    validation_primary_report = metadata.get("validation_file_level_primary_report", {})
+    test_summary = (
+        load_json_file(Path(str(file_primary_report.get("summary_json", ""))))
+        if file_primary_report.get("summary_json")
+        else {}
+    )
+    validation_summary = (
+        load_json_file(Path(str(validation_primary_report.get("summary_json", ""))))
+        if validation_primary_report.get("summary_json")
+        else {}
+    )
+    return {
+        **registry_entry,
+        "encoder_source_run_id": stringify(metadata.get("encoder_source_run_id", "")),
+        "file_level_model_family": stringify(
+            metadata.get("file_level_model_family", registry_entry["model_family"])
+        ),
+        "encoder_frozen": stringify(metadata.get("encoder_frozen", "")),
+        "selection_rules": stringify(metadata.get("aggregator_selection_source", "")),
+        "validation_file_acc@1": stringify(validation_summary.get("acc@1", "")),
+        "validation_file_acc@5": stringify(validation_summary.get("acc@5", "")),
+        "validation_file_macro_f1": stringify(validation_summary.get("f1_macro", "")),
+        "validation_file_summary_metrics_path": stringify(
+            validation_primary_report.get("summary_json", "")
+        ),
+        "file_acc@1": stringify(test_summary.get("acc@1", "")),
+        "file_acc@5": stringify(test_summary.get("acc@5", "")),
+        "file_macro_precision": stringify(test_summary.get("precision_macro", "")),
+        "file_macro_recall": stringify(test_summary.get("recall_macro", "")),
+        "file_macro_f1": stringify(test_summary.get("f1_macro", "")),
+        "file_summary_metrics_path": stringify(file_primary_report.get("summary_json", "")),
+        "file_confusion_matrix_path": stringify(
+            file_primary_report.get("confusion_matrix_csv", "")
+        ),
+        "file_per_category_accuracy_path": stringify(
+            file_primary_report.get("per_category_accuracy_csv", "")
+        ),
+        "file_predictions_path": stringify(file_primary_report.get("per_file_predictions_csv", "")),
+    }
+
+
+def build_m03_seed_summary(
+    rows: tuple[dict[str, str], ...] | list[dict[str, str]],
+) -> dict[str, Any]:
+    if not rows:
+        raise DiagnosticExportError("at least one m03 file-level row is required")
+    metric_keys = ("file_acc@1", "file_acc@5", "file_macro_f1")
+    summary: dict[str, Any] = {
+        "n_runs": len(rows),
+        "run_ids": [row["run_id"] for row in rows],
+        "encoder_source_run_ids": [row["encoder_source_run_id"] for row in rows],
+        "file_level_model_families": [row["file_level_model_family"] for row in rows],
+    }
+    for metric_key in metric_keys:
+        values = np.asarray([float(row[metric_key]) for row in rows], dtype=np.float64)
+        summary[metric_key] = {
+            "mean": float(values.mean()),
+            "std": float(values.std(ddof=0)),
+            "min": float(values.min()),
+            "max": float(values.max()),
+        }
+    return summary
+
+
 def build_metrics_long_rows(entries: list[dict[str, str]]) -> list[dict[str, str]]:
     metric_fields = ("acc@1", "acc@5", "macro_precision", "macro_recall", "macro_f1")
     rows: list[dict[str, str]] = []
@@ -618,6 +686,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("m03_"):
+        return "m03"
     if run_id.startswith("m02_"):
         return "m02"
     if run_id.startswith("m01c_"):
