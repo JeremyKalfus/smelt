@@ -1,0 +1,55 @@
+{
+  "aggregator_selection_source": "validation_only",
+  "batch_size": 16,
+  "best_checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/checkpoint_best.pt",
+  "best_validation_summary": {
+    "epoch": 45,
+    "file_acc@1": 82.0,
+    "file_acc@5": 96.0,
+    "file_macro_f1": 76.66666666666666
+  },
+  "channel_set": "all12",
+  "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/checkpoint_final.pt",
+  "device": "mps",
+  "encoder_frozen": true,
+  "encoder_source_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0/window_features.npz",
+  "encoder_source_run_id": "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+  "file_counts": {
+    "test": 50,
+    "train": 200,
+    "validation": 50
+  },
+  "file_level_model_family": "attention_deepsets",
+  "file_level_primary_report": {
+    "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/file_level/attention_deepsets/confusion_matrix.csv",
+    "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/file_level/attention_deepsets/per_category_accuracy.csv",
+    "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/file_level/attention_deepsets/per_file_predictions.csv",
+    "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/file_level/attention_deepsets",
+    "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/file_level/attention_deepsets/summary_metrics.json"
+  },
+  "locked_primary_aggregator": "attention_deepsets",
+  "mode": "file_level_classification",
+  "parameter_count": 177459,
+  "primary_checkpoint_selection_metric": "validation_file_acc@1_then_validation_file_macro_f1",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/m02_exact_upstream_regression_smoke.json",
+    "frozen_encoder_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m03_primary_encoder_selection.json",
+    "protocol_definition_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m01c_protocol_definition.json"
+  },
+  "track": "moonshot-enhanced-setting",
+  "validation_file_level_primary_report": {
+    "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/validation_file_level/attention_deepsets/confusion_matrix.csv",
+    "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/validation_file_level/attention_deepsets/per_category_accuracy.csv",
+    "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/validation_file_level/attention_deepsets/per_file_predictions.csv",
+    "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/validation_file_level/attention_deepsets",
+    "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed23-20260402-131046-cfb04874/validation_file_level/attention_deepsets/summary_metrics.json"
+  },
+  "view_mode": "diff_all12",
+  "window_counts": {
+    "test": 502,
+    "train": 2013,
+    "validation": 499
+  }
+}

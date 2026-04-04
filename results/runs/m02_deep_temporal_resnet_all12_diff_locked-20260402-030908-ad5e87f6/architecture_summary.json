@@ -1,0 +1,28 @@
+{
+  "batch_size": 16,
+  "block_type": "se_basic_residual_block",
+  "device": "mps",
+  "effective_batch_size": 64,
+  "gradient_accumulation_steps": 4,
+  "head_dropout": 0.2,
+  "input_feature_count": 12,
+  "kernel_size": 5,
+  "model_family": "deep_temporal_resnet",
+  "normalization": "groupnorm",
+  "parameter_count": 8981970,
+  "se_reduction": 16,
+  "stage_depths": [
+    3,
+    4,
+    6,
+    3
+  ],
+  "stage_widths": [
+    64,
+    128,
+    256,
+    384
+  ],
+  "stem_width": 64,
+  "stochastic_depth_probability": 0.05
+}

@@ -1,0 +1,31 @@
+batch_size: 16
+category_map_path: configs/exact-upstream/category_map.json
+channel_set: all12
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+config_path: /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m03_attention_deepsets_frozen_seed11.yaml
+device: auto
+diff_period: 25
+epochs: 160
+exact_upstream_regression_path: artifacts/methods/m02_exact_upstream_regression_smoke.json
+experiment_name: m03_attention_deepsets_frozen_seed11
+frozen_embedding_bundle_path: results/embeddings/m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0/window_features.npz
+frozen_encoder_run_id: m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0
+frozen_encoder_selection_path: results/tables/m03_primary_encoder_selection.json
+grad_clip: 1.0
+label_smoothing: 0.05
+lr: 0.002
+model:
+  dropout: 0.2
+  hidden_dim: 256
+model_name: attention_deepsets
+output_root: results/runs
+protocol_definition_path: results/tables/m01c_protocol_definition.json
+scheduler_eta_min: 5.0e-05
+scheduler_name: cosine
+scheduler_t_max: 160
+seed: 11
+stride: 50
+track: moonshot-enhanced-setting
+view_mode: diff_all12
+weight_decay: 0.0005
+window_size: 100

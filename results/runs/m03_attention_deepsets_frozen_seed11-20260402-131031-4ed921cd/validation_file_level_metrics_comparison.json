@@ -1,0 +1,27 @@
+{
+  "rows": [
+    {
+      "channel_set": "all12",
+      "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed11-20260402-131031-4ed921cd/validation_file_level/attention_deepsets/confusion_matrix.csv",
+      "encoder_frozen": "true",
+      "encoder_source_run_id": "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+      "file_acc@1": "82.0",
+      "file_acc@5": "98.0",
+      "file_level_model_family": "attention_deepsets",
+      "file_macro_f1": "78.0",
+      "file_macro_precision": "76.0",
+      "file_macro_recall": "82.0",
+      "g": "25",
+      "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed11-20260402-131031-4ed921cd/validation_file_level/attention_deepsets/per_category_accuracy.csv",
+      "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed11-20260402-131031-4ed921cd/validation_file_level/attention_deepsets/per_file_predictions.csv",
+      "run_id": "m03_attention_deepsets_frozen_seed11-20260402-131031-4ed921cd",
+      "selection_rules": "validation_only_checkpoint_selection",
+      "split": "validation",
+      "stride": "50",
+      "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m03_attention_deepsets_frozen_seed11-20260402-131031-4ed921cd/validation_file_level/attention_deepsets/summary_metrics.json",
+      "track": "moonshot-enhanced-setting",
+      "view_mode": "diff_all12",
+      "window_size": "100"
+    }
+  ]
+}
