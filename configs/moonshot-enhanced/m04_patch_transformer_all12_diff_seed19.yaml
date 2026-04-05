@@ -1,0 +1,40 @@
+track: moonshot-enhanced-setting
+experiment_name: m04_patch_transformer_all12_diff_seed19
+data_root: ${SMELT_DATA_ROOT}
+output_root: results/runs
+category_map_path: configs/exact-upstream/category_map.json
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+exact_upstream_regression_path: artifacts/methods/m03_exact_upstream_regression_smoke.json
+seed: 19
+device: auto
+epochs: 140
+batch_size: 16
+gradient_accumulation_steps: 4
+lr: 0.0015
+weight_decay: 0.0005
+grad_clip: 1.0
+label_smoothing: 0.05
+diff_period: 25
+window_size: 100
+stride: 50
+num_workers: 0
+validation_files_per_class: 1
+locked_protocol: true
+candidate_file_aggregators:
+  - mean_logits
+  - mean_probabilities
+  - majority_vote
+channel_set: all12
+scheduler_name: cosine
+scheduler_t_max: 140
+scheduler_eta_min: 0.00005
+shuffle_train_labels: false
+model_name: patch_transformer
+model:
+  patch_size: 8
+  patch_stride: 4
+  model_dim: 288
+  num_heads: 8
+  num_layers: 6
+  mlp_ratio: 4.0
+  dropout: 0.1

@@ -38,7 +38,13 @@ from smelt.evaluation import (
     select_validation_locked_aggregator,
     write_window_prediction_bundle,
 )
-from smelt.models import DeepTemporalResNet1D, ExactUpstreamCnnClassifier
+from smelt.models import (
+    DeepTemporalResNet1D,
+    ExactResearchInceptionClassifier,
+    ExactUpstreamCnnClassifier,
+    TemporalPatchTransformerClassifier,
+    build_inception_model_summary,
+)
 from smelt.preprocessing import stack_window_values
 
 from .run import (
@@ -95,7 +101,12 @@ class MoonshotRunConfig:
     validation_file_aggregator: str
     channel_set: str
     model_name: str
-    model: CnnModelConfig | TemporalResNetModelConfig
+    model: (
+        CnnModelConfig
+        | TemporalResNetModelConfig
+        | HInceptionModelConfig
+        | PatchTransformerModelConfig
+    )
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -162,6 +173,29 @@ class TemporalResNetModelConfig:
     se_reduction: int
     head_dropout: float
     stochastic_depth_probability: float
+
+
+@dataclass(slots=True)
+class HInceptionModelConfig:
+    stem_channels: int
+    branch_channels: int
+    bottleneck_channels: int
+    num_blocks: int
+    residual_interval: int
+    activation_name: str
+    dropout: float
+    head_hidden_dim: int
+
+
+@dataclass(slots=True)
+class PatchTransformerModelConfig:
+    patch_size: int
+    patch_stride: int
+    model_dim: int
+    num_heads: int
+    num_layers: int
+    mlp_ratio: float
+    dropout: float
 
 
 @dataclass(slots=True)
@@ -527,6 +561,7 @@ def run_moonshot(
         {
             "track": MOONSHOT_TRACK,
             "mode": "supervised_classification",
+            "model_family": config.model_name,
             "view_mode": f"diff_{config.channel_set}",
             "channel_set": config.channel_set,
             "reference_artifacts": {
@@ -688,9 +723,15 @@ def load_moonshot_run_config(config_path: Path) -> MoonshotRunConfig:
         raise MoonshotRunError(f"moonshot config is missing required keys: {missing}")
     if payload["track"] != MOONSHOT_TRACK:
         raise MoonshotRunError(f"unsupported track for moonshot runner: {payload['track']!r}")
-    if payload["model_name"] not in {"cnn", "deep_temporal_resnet"}:
+    if payload["model_name"] not in {
+        "cnn",
+        "deep_temporal_resnet",
+        "hinception",
+        "patch_transformer",
+    }:
         raise MoonshotRunError(
-            "moonshot runner supports only cnn and deep_temporal_resnet model_name values"
+            "moonshot runner supports only cnn, deep_temporal_resnet, hinception, "
+            "and patch_transformer model_name values"
         )
     locked_protocol = bool(payload.get("locked_protocol", False))
     candidate_file_aggregators = normalize_aggregator_candidates(
@@ -758,7 +799,9 @@ def build_moonshot_model_config(
     *,
     model_name: str,
     model_payload: dict[str, Any],
-) -> CnnModelConfig | TemporalResNetModelConfig:
+) -> (
+    CnnModelConfig | TemporalResNetModelConfig | HInceptionModelConfig | PatchTransformerModelConfig
+):
     if model_name == "cnn":
         raw_channels = model_payload["channels"]
         if not isinstance(raw_channels, list) or not raw_channels:
@@ -786,6 +829,27 @@ def build_moonshot_model_config(
             se_reduction=int(model_payload["se_reduction"]),
             head_dropout=float(model_payload["head_dropout"]),
             stochastic_depth_probability=float(model_payload["stochastic_depth_probability"]),
+        )
+    if model_name == "hinception":
+        return HInceptionModelConfig(
+            stem_channels=int(model_payload["stem_channels"]),
+            branch_channels=int(model_payload["branch_channels"]),
+            bottleneck_channels=int(model_payload["bottleneck_channels"]),
+            num_blocks=int(model_payload["num_blocks"]),
+            residual_interval=int(model_payload["residual_interval"]),
+            activation_name=str(model_payload["activation_name"]),
+            dropout=float(model_payload["dropout"]),
+            head_hidden_dim=int(model_payload["head_hidden_dim"]),
+        )
+    if model_name == "patch_transformer":
+        return PatchTransformerModelConfig(
+            patch_size=int(model_payload["patch_size"]),
+            patch_stride=int(model_payload["patch_stride"]),
+            model_dim=int(model_payload["model_dim"]),
+            num_heads=int(model_payload["num_heads"]),
+            num_layers=int(model_payload["num_layers"]),
+            mlp_ratio=float(model_payload["mlp_ratio"]),
+            dropout=float(model_payload["dropout"]),
         )
     raise MoonshotRunError(f"unsupported moonshot model_name: {model_name!r}")
 
@@ -836,6 +900,51 @@ def build_moonshot_model(
             se_reduction=config.model.se_reduction,
             head_dropout=config.model.head_dropout,
             stochastic_depth_probability=config.model.stochastic_depth_probability,
+        )
+        return model, model.architecture_summary(input_feature_count=input_dim).to_dict()
+    if config.model_name == "hinception":
+        if not isinstance(config.model, HInceptionModelConfig):
+            raise MoonshotRunError("moonshot hinception config is malformed")
+        model = ExactResearchInceptionClassifier(
+            input_dim=input_dim,
+            num_classes=num_classes,
+            stem_channels=config.model.stem_channels,
+            branch_channels=config.model.branch_channels,
+            bottleneck_channels=config.model.bottleneck_channels,
+            num_blocks=config.model.num_blocks,
+            residual_interval=config.model.residual_interval,
+            activation_name=config.model.activation_name,
+            dropout=config.model.dropout,
+            head_hidden_dim=config.model.head_hidden_dim,
+        )
+        return (
+            model,
+            build_inception_model_summary(
+                model=model,
+                input_dim=input_dim,
+                stem_channels=config.model.stem_channels,
+                branch_channels=config.model.branch_channels,
+                bottleneck_channels=config.model.bottleneck_channels,
+                num_blocks=config.model.num_blocks,
+                residual_interval=config.model.residual_interval,
+                activation_name=config.model.activation_name,
+                dropout=config.model.dropout,
+                head_hidden_dim=config.model.head_hidden_dim,
+            ).to_dict(),
+        )
+    if config.model_name == "patch_transformer":
+        if not isinstance(config.model, PatchTransformerModelConfig):
+            raise MoonshotRunError("moonshot patch transformer config is malformed")
+        model = TemporalPatchTransformerClassifier(
+            input_dim=input_dim,
+            num_classes=num_classes,
+            patch_size=config.model.patch_size,
+            patch_stride=config.model.patch_stride,
+            model_dim=config.model.model_dim,
+            num_heads=config.model.num_heads,
+            num_layers=config.model.num_layers,
+            mlp_ratio=config.model.mlp_ratio,
+            dropout=config.model.dropout,
         )
         return model, model.architecture_summary(input_feature_count=input_dim).to_dict()
     raise MoonshotRunError(f"unsupported moonshot model_name: {config.model_name!r}")

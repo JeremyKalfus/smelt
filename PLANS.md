@@ -11,11 +11,11 @@ Execution policy:
 
 Current active moonshot ticket:
 
-- `m03`: learned file-level model + locked seed ensemble
+- `m04`: diversity-driven heterogeneous moonshot ensemble bank
   - keep the locked `m01c` window encoder protocol fixed
-  - reuse frozen `m01c` seed runs via eval-only embedding/logit export
-  - select the primary frozen encoder and ensemble method from validation only
-  - train only the file-level head in this ticket
+  - expand the bank with additional cnn, hinception, deep temporal resnet, and optional transformer-like candidates
+  - export file-aware validation/test outputs for the full bank
+  - select the final ensemble from validation only with explicit diversity-aware search
 
 ## track separation
 

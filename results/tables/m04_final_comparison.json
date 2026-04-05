@@ -1,0 +1,19 @@
+{
+  "rows": [
+    {
+      "baseline_file_acc@1": "90.0",
+      "baseline_file_macro_f1": "87.33333333333333",
+      "baseline_label": "m03_locked_seed_ensemble",
+      "delta_file_acc@1": "4.0",
+      "delta_file_macro_f1": "4.666666666666657",
+      "ensemble_file_acc@1": "94.0",
+      "ensemble_file_acc@5": "100.0",
+      "ensemble_file_macro_f1": "91.99999999999999",
+      "ensemble_run_id": "m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a",
+      "file_confusion_matrix_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities/confusion_matrix.csv",
+      "file_predictions_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities/per_file_predictions.csv",
+      "file_summary_metrics_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities/summary_metrics.json",
+      "locked_primary_aggregator": "diversity_greedy_probabilities"
+    }
+  ]
+}

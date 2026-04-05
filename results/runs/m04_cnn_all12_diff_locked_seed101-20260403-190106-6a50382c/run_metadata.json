@@ -1,0 +1,80 @@
+{
+  "aggregator_selection_source": "validation_only",
+  "architecture_summary_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/architecture_summary.json",
+  "batch_size": 32,
+  "best_checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/checkpoint_best.pt",
+  "best_validation_summary": {
+    "epoch": 106,
+    "file_acc@1": 90.0,
+    "file_acc@5": 100.0,
+    "file_macro_f1": 87.66666666666666,
+    "window_acc@1": 61.923847695390776,
+    "window_acc@5": 94.38877755511022,
+    "window_macro_f1": 62.15537764357671
+  },
+  "candidate_file_aggregators": [
+    "mean_logits",
+    "mean_probabilities",
+    "majority_vote"
+  ],
+  "channel_set": "all12",
+  "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/checkpoint_final.pt",
+  "device": "mps",
+  "effective_batch_size": 32,
+  "feature_names": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG",
+    "Benzene",
+    "Temperature",
+    "Pressure",
+    "Humidity",
+    "Gas_Resistance",
+    "Altitude"
+  ],
+  "file_level_metrics_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/file_level_metrics_comparison.json",
+  "file_level_primary_report": {
+    "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/file_level/mean_probabilities/confusion_matrix.csv",
+    "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/file_level/mean_probabilities/per_category_accuracy.csv",
+    "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/file_level/mean_probabilities/per_file_predictions.csv",
+    "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/file_level/mean_probabilities",
+    "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/file_level/mean_probabilities/summary_metrics.json"
+  },
+  "gradient_accumulation_steps": 1,
+  "locked_aggregator_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/locked_aggregator_selection.json",
+  "locked_primary_aggregator": "mean_probabilities",
+  "locked_protocol": true,
+  "mode": "supervised_classification",
+  "model_family": "cnn",
+  "parameter_count": 222834,
+  "primary_checkpoint_selection_metric": "validation_file_acc@1_then_validation_file_macro_f1",
+  "primary_file_aggregator": "mean_probabilities",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/m03_exact_upstream_regression_smoke.json"
+  },
+  "setting_note": "moonshot-enhanced-setting",
+  "shuffle_train_labels": false,
+  "track": "moonshot-enhanced-setting",
+  "validation_file_aggregator": "mean_probabilities",
+  "validation_file_level_metrics_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/validation_file_level_metrics_comparison.json",
+  "validation_file_level_primary_report": {
+    "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/validation_file_level/mean_probabilities/confusion_matrix.csv",
+    "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/validation_file_level/mean_probabilities/per_category_accuracy.csv",
+    "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/validation_file_level/mean_probabilities/per_file_predictions.csv",
+    "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/validation_file_level/mean_probabilities",
+    "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/validation_file_level/mean_probabilities/summary_metrics.json"
+  },
+  "validation_files_per_class": 1,
+  "validation_split_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c/validation_split.json",
+  "view_mode": "diff_all12",
+  "window_counts": {
+    "test": 502,
+    "train": 2013,
+    "validation": 499
+  }
+}

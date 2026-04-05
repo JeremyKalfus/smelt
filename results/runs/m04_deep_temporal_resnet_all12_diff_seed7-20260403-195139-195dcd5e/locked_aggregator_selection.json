@@ -1,0 +1,45 @@
+{
+  "best_validation_candidates": [
+    {
+      "aggregator": "majority_vote",
+      "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e/checkpoint_candidates/majority_vote.pt",
+      "epoch": 56,
+      "validation_file_acc@1": 72.0,
+      "validation_file_acc@5": 94.0,
+      "validation_file_macro_f1": 65.33333333333334,
+      "validation_window_acc@1": 55.31062124248497,
+      "validation_window_acc@5": 84.5691382765531,
+      "validation_window_macro_f1": 52.813079313660815
+    },
+    {
+      "aggregator": "mean_logits",
+      "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e/checkpoint_candidates/mean_logits.pt",
+      "epoch": 56,
+      "validation_file_acc@1": 76.0,
+      "validation_file_acc@5": 96.0,
+      "validation_file_macro_f1": 70.0,
+      "validation_window_acc@1": 55.31062124248497,
+      "validation_window_acc@5": 84.5691382765531,
+      "validation_window_macro_f1": 52.813079313660815
+    },
+    {
+      "aggregator": "mean_probabilities",
+      "checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e/checkpoint_candidates/mean_probabilities.pt",
+      "epoch": 56,
+      "validation_file_acc@1": 74.0,
+      "validation_file_acc@5": 96.0,
+      "validation_file_macro_f1": 67.66666666666666,
+      "validation_window_acc@1": 55.31062124248497,
+      "validation_window_acc@5": 84.5691382765531,
+      "validation_window_macro_f1": 52.813079313660815
+    }
+  ],
+  "candidate_file_aggregators": [
+    "mean_logits",
+    "mean_probabilities",
+    "majority_vote"
+  ],
+  "locked_primary_aggregator": "mean_logits",
+  "locked_protocol": true,
+  "primary_checkpoint_selection_metric": "validation_file_acc@1_then_validation_file_macro_f1"
+}
