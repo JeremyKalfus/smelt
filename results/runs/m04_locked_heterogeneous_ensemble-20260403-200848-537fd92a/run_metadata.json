@@ -1,0 +1,93 @@
+{
+  "aggregator_selection_source": "validation_only",
+  "avg_pairwise_agreement": 0.7060000000000001,
+  "avg_pairwise_correlation": 0.8165225349650076,
+  "best_checkpoint_path": "",
+  "best_validation_summary": {
+    "file_acc@1": 92.0,
+    "file_acc@5": 100.0,
+    "file_macro_f1": 90.0
+  },
+  "channel_set": "all12",
+  "checkpoint_path": "",
+  "encoder_frozen": true,
+  "ensemble_search_summary_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_ensemble_search_summary.json",
+  "ensemble_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_ensemble_selection.json",
+  "file_level_model_family": "locked_heterogeneous_ensemble",
+  "file_level_primary_report": {
+    "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities/confusion_matrix.csv",
+    "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities/per_category_accuracy.csv",
+    "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities/per_file_predictions.csv",
+    "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities",
+    "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/file_level/diversity_greedy_probabilities/summary_metrics.json"
+  },
+  "locked_primary_aggregator": "diversity_greedy_probabilities",
+  "mode": "heterogeneous_file_level_ensemble",
+  "primary_checkpoint_selection_metric": "validation_file_acc@1_then_validation_file_macro_f1_then_diversity",
+  "reference_artifacts": {
+    "category_map_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json",
+    "class_vocab_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json",
+    "diversity_matrix_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_diversity_matrix.json",
+    "exact_upstream_regression_path": "/Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/m03_exact_upstream_regression_smoke.json",
+    "model_bank_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_model_bank.json",
+    "protocol_definition_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m01c_protocol_definition.json"
+  },
+  "selected_member_run_ids": [
+    "m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77",
+    "m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6",
+    "m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c",
+    "m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8",
+    "m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727"
+  ],
+  "selected_weights": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.2
+  ],
+  "source_export_dirs": [
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_cnn_all12_diff_locked_seed202-20260403-190212-7d7286a4",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_hinception_all12_diff_seed17-20260403-193359-4a17a751",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8",
+    "/Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727"
+  ],
+  "source_families": [
+    "cnn",
+    "deep_temporal_resnet",
+    "hinception",
+    "patch_transformer"
+  ],
+  "source_run_ids": [
+    "m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0",
+    "m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738",
+    "m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77",
+    "m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c",
+    "m04_cnn_all12_diff_locked_seed202-20260403-190212-7d7286a4",
+    "m04_hinception_all12_diff_seed17-20260403-193359-4a17a751",
+    "m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8",
+    "m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6",
+    "m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e",
+    "m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727"
+  ],
+  "track": "moonshot-enhanced-setting",
+  "validation_file_level_primary_report": {
+    "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/validation_file_level/diversity_greedy_probabilities/confusion_matrix.csv",
+    "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/validation_file_level/diversity_greedy_probabilities/per_category_accuracy.csv",
+    "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/validation_file_level/diversity_greedy_probabilities/per_file_predictions.csv",
+    "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/validation_file_level/diversity_greedy_probabilities",
+    "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a/validation_file_level/diversity_greedy_probabilities/summary_metrics.json"
+  },
+  "view_mode": "diff_all12",
+  "window_counts": {
+    "test": "",
+    "train": "",
+    "validation": ""
+  }
+}

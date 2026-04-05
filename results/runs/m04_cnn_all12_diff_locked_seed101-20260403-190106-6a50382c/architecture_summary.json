@@ -1,0 +1,21 @@
+{
+  "batch_size": 32,
+  "block_type": "conv_stack",
+  "device": "mps",
+  "effective_batch_size": 32,
+  "gradient_accumulation_steps": 1,
+  "head_dropout": 0.2,
+  "input_feature_count": 12,
+  "kernel_size": 5,
+  "model_family": "cnn",
+  "normalization": "batchnorm",
+  "parameter_count": 222834,
+  "stage_depths": [
+    3
+  ],
+  "stage_widths": [
+    64,
+    128,
+    256
+  ]
+}

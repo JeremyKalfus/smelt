@@ -1,0 +1,18 @@
+{
+  "channel_set": "all12",
+  "class_count": 50,
+  "device": "mps",
+  "embedding_dim": 384,
+  "locked_primary_aggregator": "mean_logits",
+  "sample_count": 3014,
+  "source_checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e/checkpoint_best.pt",
+  "source_run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e",
+  "source_run_id": "m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e",
+  "split_counts": {
+    "test": 502,
+    "train": 2013,
+    "validation": 499
+  },
+  "track": "moonshot-enhanced-setting",
+  "view_mode": "diff_all12"
+}

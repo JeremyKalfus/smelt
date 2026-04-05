@@ -1,0 +1,102 @@
+{
+  "acc@1": 60.0,
+  "acc@5": 98.0,
+  "class_names": [
+    "allspice",
+    "almond",
+    "angelica",
+    "apple",
+    "asparagus",
+    "avocado",
+    "banana",
+    "brazil_nut",
+    "broccoli",
+    "brussel_sprouts",
+    "cabbage",
+    "cashew",
+    "cauliflower",
+    "chamomile",
+    "chervil",
+    "chestnuts",
+    "chives",
+    "cinnamon",
+    "cloves",
+    "coriander",
+    "cumin",
+    "dill",
+    "garlic",
+    "ginger",
+    "hazelnut",
+    "kiwi",
+    "lemon",
+    "mandarin_orange",
+    "mango",
+    "mint",
+    "mugwort",
+    "mustard",
+    "nutmeg",
+    "oregano",
+    "peach",
+    "peanuts",
+    "pear",
+    "pecans",
+    "pili_nut",
+    "pineapple",
+    "pistachios",
+    "potato",
+    "radish",
+    "saffron",
+    "star_anise",
+    "strawberry",
+    "sweet_potato",
+    "tomato",
+    "turnip",
+    "walnuts"
+  ],
+  "f1_macro": 52.33333333333333,
+  "methods": {
+    "channel_set": "all12",
+    "locked_primary_aggregator": "mean_probabilities",
+    "primary_checkpoint_selection_metric": "validation_file_acc@1_then_validation_file_macro_f1",
+    "setting_note": "moonshot-enhanced-setting",
+    "track": "moonshot-enhanced-setting",
+    "view_mode": "diff_all12",
+    "window_level_acc@1": 41.03585657370518,
+    "window_level_acc@5": 83.66533864541833,
+    "window_level_f1_macro": 38.76914040415627
+  },
+  "per_category": [
+    {
+      "acc@1": 50.0,
+      "acc@5": 90.0,
+      "category": "nuts",
+      "n": 10
+    },
+    {
+      "acc@1": 70.0,
+      "acc@5": 100.0,
+      "category": "spices",
+      "n": 10
+    },
+    {
+      "acc@1": 40.0,
+      "acc@5": 100.0,
+      "category": "herbs",
+      "n": 10
+    },
+    {
+      "acc@1": 90.0,
+      "acc@5": 100.0,
+      "category": "fruits",
+      "n": 10
+    },
+    {
+      "acc@1": 50.0,
+      "acc@5": 100.0,
+      "category": "vegetables",
+      "n": 10
+    }
+  ],
+  "precision_macro": 49.0,
+  "recall_macro": 60.0
+}

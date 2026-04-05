@@ -268,3 +268,50 @@ class InceptionModelSummary:
     activation_name: str
     dropout: float
     head_hidden_dim: int
+    parameter_count: int
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "model_family": "hinception",
+            "block_type": "inception_time_residual",
+            "input_feature_count": self.input_dim,
+            "stem_channels": self.stem_channels,
+            "branch_channels": self.branch_channels,
+            "bottleneck_channels": self.bottleneck_channels,
+            "num_blocks": self.num_blocks,
+            "residual_interval": self.residual_interval,
+            "activation_name": self.activation_name,
+            "dropout": self.dropout,
+            "head_hidden_dim": self.head_hidden_dim,
+            "parameter_count": self.parameter_count,
+        }
+
+
+def build_inception_model_summary(
+    *,
+    model: ExactResearchInceptionClassifier,
+    input_dim: int,
+    stem_channels: int,
+    branch_channels: int,
+    bottleneck_channels: int,
+    num_blocks: int,
+    residual_interval: int,
+    activation_name: str,
+    dropout: float,
+    head_hidden_dim: int,
+) -> InceptionModelSummary:
+    parameter_count = int(
+        sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+    )
+    return InceptionModelSummary(
+        input_dim=input_dim,
+        stem_channels=stem_channels,
+        branch_channels=branch_channels,
+        bottleneck_channels=bottleneck_channels,
+        num_blocks=num_blocks,
+        residual_interval=residual_interval,
+        activation_name=activation_name,
+        dropout=dropout,
+        head_hidden_dim=head_hidden_dim,
+        parameter_count=parameter_count,
+    )

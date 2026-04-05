@@ -110,6 +110,39 @@ class FileLevelAggregationResult:
 
 
 @dataclass(slots=True)
+class FileScoreBundle:
+    aggregator: str
+    class_names: tuple[str, ...]
+    scores: NDArray[np.float64]
+    true_labels: NDArray[np.int64]
+    predicted_labels: NDArray[np.int64]
+    topk_indices: NDArray[np.int64]
+    split_names: tuple[str, ...]
+    relative_paths: tuple[str, ...]
+    absolute_paths: tuple[str, ...]
+    num_windows: NDArray[np.int64]
+
+    def __post_init__(self) -> None:
+        sample_count = int(self.true_labels.shape[0])
+        if sample_count == 0:
+            raise FileLevelAggregationError("file score bundle must be non-empty")
+        if self.scores.shape != (sample_count, len(self.class_names)):
+            raise FileLevelAggregationError("scores shape does not match sample and class count")
+        if self.predicted_labels.shape != (sample_count,):
+            raise FileLevelAggregationError("predicted_labels shape does not match sample count")
+        if self.topk_indices.ndim != 2 or self.topk_indices.shape[0] != sample_count:
+            raise FileLevelAggregationError("topk_indices shape does not match sample count")
+        if len(self.split_names) != sample_count:
+            raise FileLevelAggregationError("split_names length does not match sample count")
+        if len(self.relative_paths) != sample_count:
+            raise FileLevelAggregationError("relative_paths length does not match sample count")
+        if len(self.absolute_paths) != sample_count:
+            raise FileLevelAggregationError("absolute_paths length does not match sample count")
+        if self.num_windows.shape != (sample_count,):
+            raise FileLevelAggregationError("num_windows shape does not match sample count")
+
+
+@dataclass(slots=True)
 class FileLevelReportPaths:
     report_dir: str
     summary_json: str
@@ -345,6 +378,51 @@ def aggregate_file_level_metrics(
         aggregator=aggregator,
         metrics=metrics,
         rows=tuple(rows),
+    )
+
+
+def build_file_score_bundle(
+    *,
+    bundle: WindowPredictionBundle,
+    aggregator: str,
+) -> FileScoreBundle:
+    aggregator = normalize_aggregator_name(aggregator)
+    grouped_indices = group_indices_by_file(bundle.relative_paths)
+    score_rows: list[NDArray[np.float64]] = []
+    true_labels: list[int] = []
+    predicted_labels: list[int] = []
+    topk_rows: list[NDArray[np.int64]] = []
+    split_names: list[str] = []
+    relative_paths: list[str] = []
+    absolute_paths: list[str] = []
+    num_windows: list[int] = []
+
+    for relative_path in sorted(grouped_indices):
+        indices = grouped_indices[relative_path]
+        split_names.append(require_unique_string(bundle.splits, indices, "split", relative_path))
+        absolute_paths.append(
+            require_unique_string(bundle.absolute_paths, indices, "absolute_path", relative_path)
+        )
+        true_label = require_unique_int(bundle.true_labels, indices, "true_label", relative_path)
+        scores, topk = aggregate_group_scores(bundle, indices, aggregator)
+        score_rows.append(scores.astype(np.float64, copy=False))
+        true_labels.append(true_label)
+        predicted_labels.append(int(topk[0]))
+        topk_rows.append(topk.astype(np.int64, copy=False))
+        relative_paths.append(relative_path)
+        num_windows.append(len(indices))
+
+    return FileScoreBundle(
+        aggregator=aggregator,
+        class_names=bundle.class_names,
+        scores=np.stack(score_rows, axis=0),
+        true_labels=np.asarray(true_labels, dtype=np.int64),
+        predicted_labels=np.asarray(predicted_labels, dtype=np.int64),
+        topk_indices=np.stack(topk_rows, axis=0),
+        split_names=tuple(split_names),
+        relative_paths=tuple(relative_paths),
+        absolute_paths=tuple(absolute_paths),
+        num_windows=np.asarray(num_windows, dtype=np.int64),
     )
 
 

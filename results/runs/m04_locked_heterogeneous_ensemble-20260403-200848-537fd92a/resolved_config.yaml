@@ -1,0 +1,43 @@
+candidate_methods:
+- mean_probabilities_all
+- mean_logits_all
+- weighted_probabilities_all
+- greedy_forward_probabilities
+- diversity_greedy_probabilities
+category_map_path: /Users/jeremykalfus/CodingProjects/smelt/configs/exact-upstream/category_map.json
+channel_set: all12
+class_vocab_manifest_path: /Users/jeremykalfus/CodingProjects/smelt/artifacts/manifests/base_class_vocab.json
+diff_period: 25
+exact_upstream_regression_path: /Users/jeremykalfus/CodingProjects/smelt/artifacts/methods/m03_exact_upstream_regression_smoke.json
+experiment_name: m04_locked_heterogeneous_ensemble
+export_root: /Users/jeremykalfus/CodingProjects/smelt/results/embeddings
+model_name: locked_heterogeneous_ensemble
+output_root: /Users/jeremykalfus/CodingProjects/smelt/results/runs
+protocol_definition_path: /Users/jeremykalfus/CodingProjects/smelt/results/tables/m01c_protocol_definition.json
+source_export_dirs:
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_cnn_all12_diff_locked_seed202-20260403-190212-7d7286a4
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_hinception_all12_diff_seed17-20260403-193359-4a17a751
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8
+- /Users/jeremykalfus/CodingProjects/smelt/results/embeddings/m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727
+source_run_dirs:
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed101-20260403-190106-6a50382c
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_cnn_all12_diff_locked_seed202-20260403-190212-7d7286a4
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_hinception_all12_diff_seed17-20260403-193359-4a17a751
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m02_deep_temporal_resnet_all12_diff_locked-20260402-030908-ad5e87f6
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_deep_temporal_resnet_all12_diff_seed7-20260403-195139-195dcd5e
+- /Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727
+stride: 50
+table_root: /Users/jeremykalfus/CodingProjects/smelt/results/tables
+track: moonshot-enhanced-setting
+view_mode: diff_all12
+window_size: 100

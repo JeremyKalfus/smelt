@@ -1,0 +1,18 @@
+{
+  "channel_set": "all12",
+  "class_count": 50,
+  "device": "mps",
+  "embedding_dim": 512,
+  "locked_primary_aggregator": "mean_probabilities",
+  "sample_count": 3014,
+  "source_checkpoint_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8/checkpoint_best.pt",
+  "source_run_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8",
+  "source_run_id": "m04_hinception_all12_diff_seed29-20260403-194245-21b0f3f8",
+  "split_counts": {
+    "test": 502,
+    "train": 2013,
+    "validation": 499
+  },
+  "track": "moonshot-enhanced-setting",
+  "view_mode": "diff_all12"
+}

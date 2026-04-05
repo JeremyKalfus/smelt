@@ -1,0 +1,18 @@
+{
+  "activation_name": "gelu",
+  "batch_size": 16,
+  "block_type": "inception_time_residual",
+  "bottleneck_channels": 128,
+  "branch_channels": 128,
+  "device": "mps",
+  "dropout": 0.2,
+  "effective_batch_size": 64,
+  "gradient_accumulation_steps": 4,
+  "head_hidden_dim": 384,
+  "input_feature_count": 12,
+  "model_family": "hinception",
+  "num_blocks": 8,
+  "parameter_count": 3962866,
+  "residual_interval": 3,
+  "stem_channels": 192
+}

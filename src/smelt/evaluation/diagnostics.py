@@ -514,6 +514,64 @@ def build_m03_seed_summary(
     return summary
 
 
+def build_m04_model_bank_row(
+    *,
+    run_dir: Path,
+    export_dir: Path,
+) -> dict[str, str]:
+    row = build_moonshot_locked_run_row(run_dir)
+    config = load_yaml_file(run_dir / "resolved_config.yaml")
+    metadata = load_json_file(run_dir / "run_metadata.json")
+    return {
+        **row,
+        "family_name": stringify(config.get("model_name", row["model_family"])),
+        "seed": stringify(config.get("seed", "")),
+        "parameter_count": stringify(metadata.get("parameter_count", row["parameter_count"])),
+        "device": stringify(metadata.get("device", row["device"])),
+        "batch_size": stringify(config.get("batch_size", row["batch_size"])),
+        "gradient_accumulation_steps": stringify(
+            metadata.get("gradient_accumulation_steps", row["gradient_accumulation_steps"])
+        ),
+        "effective_batch_size": stringify(
+            metadata.get("effective_batch_size", row["effective_batch_size"])
+        ),
+        "export_dir": stringify(export_dir.resolve()),
+        "window_feature_bundle_path": stringify((export_dir / "window_features.npz").resolve()),
+    }
+
+
+def build_m04_ensemble_run_row(run_dir: Path) -> dict[str, str]:
+    return build_m03_file_level_run_row(run_dir)
+
+
+def build_m04_final_comparison_row(
+    *,
+    baseline_summary_path: Path,
+    ensemble_run_dir: Path,
+) -> dict[str, str]:
+    baseline_summary = load_json_file(baseline_summary_path)
+    ensemble_row = build_m04_ensemble_run_row(ensemble_run_dir)
+    baseline_acc = float(baseline_summary["rows"][0]["file_acc@1"])
+    baseline_f1 = float(baseline_summary["rows"][0]["file_macro_f1"])
+    ensemble_acc = float(ensemble_row["file_acc@1"])
+    ensemble_f1 = float(ensemble_row["file_macro_f1"])
+    return {
+        "baseline_label": "m03_locked_seed_ensemble",
+        "baseline_file_acc@1": stringify(baseline_acc),
+        "baseline_file_macro_f1": stringify(baseline_f1),
+        "ensemble_run_id": ensemble_row["run_id"],
+        "ensemble_file_acc@1": ensemble_row["file_acc@1"],
+        "ensemble_file_acc@5": ensemble_row["file_acc@5"],
+        "ensemble_file_macro_f1": ensemble_row["file_macro_f1"],
+        "locked_primary_aggregator": ensemble_row["locked_primary_aggregator"],
+        "delta_file_acc@1": stringify(ensemble_acc - baseline_acc),
+        "delta_file_macro_f1": stringify(ensemble_f1 - baseline_f1),
+        "file_summary_metrics_path": ensemble_row["file_summary_metrics_path"],
+        "file_confusion_matrix_path": ensemble_row["file_confusion_matrix_path"],
+        "file_predictions_path": ensemble_row["file_predictions_path"],
+    }
+
+
 def build_metrics_long_rows(entries: list[dict[str, str]]) -> list[dict[str, str]]:
     metric_fields = ("acc@1", "acc@5", "macro_precision", "macro_recall", "macro_f1")
     rows: list[dict[str, str]] = []
@@ -686,6 +744,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("m04_"):
+        return "m04"
     if run_id.startswith("m03_"):
         return "m03"
     if run_id.startswith("m02_"):
