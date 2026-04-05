@@ -1,4 +1,7 @@
 .reference/
+AGENTS.md
+PLANS.md
+docs/
 __pycache__/
 *.pyc
 .pytest_cache/
