@@ -1,0 +1,6 @@
+avg_pairwise_agreement,avg_pairwise_correlation,method_name,n_members,selected,validation_file_acc@1,validation_file_macro_f1
+0.728888888888889,0.8325998699520203,mean_probabilities_all,10,false,90.0,87.33333333333333
+0.728888888888889,0.8325998699520203,mean_logits_all,10,false,90.0,87.33333333333334
+0.728888888888889,0.8325998699520203,weighted_probabilities_all,10,false,90.0,87.33333333333333
+0.8,0.8657567145881353,greedy_forward_probabilities,2,false,92.0,90.0
+0.7060000000000001,0.8165225349650076,diversity_greedy_probabilities,5,true,92.0,90.0

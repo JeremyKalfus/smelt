@@ -1,0 +1,3 @@
+label,run_id,track,window_acc@1,window_acc@5,window_macro_f1
+exact_upstream_transformer,e0_transformer_cls_w100_g25-20260401-020535-86efd02e,exact-upstream,54.18326693227091,88.44621513944223,50.429012333660005
+exact_upstream_cnn,f1_cnn_cls_w100_g25-20260401-030915-420a9ae4,exact-upstream,55.57768924302788,87.05179282868527,53.893721758511084

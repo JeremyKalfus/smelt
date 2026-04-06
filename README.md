@@ -557,6 +557,18 @@ python -m smelt.training.run_moonshot \
 python -m smelt.training.run_m04_ensemble ...
 ```
 
+- verification-only export pass:
+
+```bash
+python scripts/smelt_verification_export.py \
+  --run-root results/runs \
+  --table-root results/tables \
+  --file-level-root results/file-level-eval \
+  --class-vocab-manifest-path artifacts/manifests/base_class_vocab.json \
+  --category-map-path configs/exact-upstream/category_map.json \
+  --exact-regression-artifact-path artifacts/methods/verification_exact_upstream_regression_smoke.json
+```
+
 ## Where to look first
 
 If you want the current headline artifacts first:
@@ -569,6 +581,24 @@ If you want the current headline artifacts first:
   - [results/tables/m04_final_comparison.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_final_comparison.json)
 - m04 ensemble-selection details:
   - [results/tables/m04_ensemble_selection.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_ensemble_selection.json)
+
+If you want the verification and paper-ready exports first:
+
+- verification inventory:
+  - [results/tables/verification_inventory.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_inventory.json)
+- exact-upstream verification:
+  - [results/tables/verification_exact_upstream.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_exact_upstream.json)
+- moonshot protocol verification:
+  - [results/tables/verification_moonshot_protocol.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_moonshot_protocol.json)
+- leakage and selection audit:
+  - [results/tables/verification_leakage_selection_audit.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_leakage_selection_audit.json)
+- bootstrap confidence intervals:
+  - [results/tables/verification_bootstrap_ci.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_bootstrap_ci.json)
+- paper table inputs:
+  - [results/tables/paper_baseline_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_baseline_table.csv)
+  - [results/tables/paper_ablation_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_ablation_table.csv)
+  - [results/tables/paper_main_results_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_main_results_table.csv)
+  - [results/tables/paper_diversity_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_diversity_table.csv)
 
 ## Bottom line
 

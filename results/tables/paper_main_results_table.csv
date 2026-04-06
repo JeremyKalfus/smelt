@@ -1,0 +1,4 @@
+file_acc@1,file_macro_f1,label,run_id,window_acc@1,window_macro_f1
+84.66666666666667,80.99999999999999,m01c_locked_seed_mean,"[""m01c_cnn_all12_diff_locked_seed42-20260402-013907-e83f43b0"", ""m01c_cnn_all12_diff_locked_seed7-20260402-014020-d8e02738"", ""m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77""]",68.19389110225764,66.96863779120777
+90.0,87.33333333333333,m03_locked_ensemble,m03_locked_seed_ensemble-20260402-130946-7c5810b9,,
+94.0,91.99999999999999,m04_locked_heterogeneous_ensemble,m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a,,
