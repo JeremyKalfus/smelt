@@ -1,0 +1,8 @@
+{
+  "a1_pass": true,
+  "a2_pass": true,
+  "confusion_total": 502,
+  "file_eval_only_match": true,
+  "test_window_count": 502,
+  "window_eval_only_match": true
+}

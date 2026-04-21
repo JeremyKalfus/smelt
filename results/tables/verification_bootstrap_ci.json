@@ -38,6 +38,19 @@
       "n_files": "50",
       "point_file_acc@1": "94.0",
       "point_file_macro_f1": "91.99999999999999"
+    },
+    {
+      "bootstrap_seed": "17",
+      "file_acc@1_ci_lower": "78.0",
+      "file_acc@1_ci_upper": "96.0",
+      "file_macro_f1_ci_lower": "77.70092838196288",
+      "file_macro_f1_ci_upper": "93.93939393939394",
+      "label": "m05_grouped_cv_final_protocol",
+      "metric_source": "single_final_official_test",
+      "n_bootstrap_resamples": "5000",
+      "n_files": "50",
+      "point_file_acc@1": "88.0",
+      "point_file_macro_f1": "84.66666666666666"
     }
   ]
 }

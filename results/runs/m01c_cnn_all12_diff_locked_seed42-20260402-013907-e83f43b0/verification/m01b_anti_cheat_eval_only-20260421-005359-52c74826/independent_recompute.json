@@ -1,0 +1,33 @@
+{
+  "file_level_metrics": {
+    "majority_vote": {
+      "acc@1": 80.0,
+      "acc@5": 94.0,
+      "f1_macro": 75.66666666666666,
+      "precision_macro": 73.66666666666666,
+      "recall_macro": 80.0
+    },
+    "mean_logits": {
+      "acc@1": 88.0,
+      "acc@5": 100.0,
+      "f1_macro": 84.66666666666666,
+      "precision_macro": 83.0,
+      "recall_macro": 88.0
+    },
+    "mean_probabilities": {
+      "acc@1": 90.0,
+      "acc@5": 98.0,
+      "f1_macro": 87.33333333333333,
+      "precision_macro": 86.0,
+      "recall_macro": 90.0
+    }
+  },
+  "match": true,
+  "window_metrics": {
+    "acc@1": 67.52988047808765,
+    "acc@5": 94.42231075697211,
+    "f1_macro": 66.67516376133236,
+    "precision_macro": 69.0008541166436,
+    "recall_macro": 67.73434343434343
+  }
+}

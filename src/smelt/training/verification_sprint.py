@@ -43,9 +43,11 @@ INVENTORY_RUN_IDS = (
     *M01C_RUN_IDS,
     "m03_locked_seed_ensemble-20260402-130946-7c5810b9",
     "m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a",
+    "m05_grouped_cv_refit-20260420-153535-fbfed23f",
 )
 M03_ENSEMBLE_RUN_ID = "m03_locked_seed_ensemble-20260402-130946-7c5810b9"
 M04_ENSEMBLE_RUN_ID = "m04_locked_heterogeneous_ensemble-20260403-200848-537fd92a"
+M05_PROTOCOL_RUN_ID = "m05_grouped_cv_refit-20260420-153535-fbfed23f"
 EXACT_TRANSFORMER_RUN_ID = "e0_transformer_cls_w100_g25-20260401-020535-86efd02e"
 EXACT_CNN_RUN_ID = "f1_cnn_cls_w100_g25-20260401-030915-420a9ae4"
 
@@ -211,6 +213,8 @@ def build_inventory_rows(run_root: Path) -> list[dict[str, str]]:
 def infer_primary_metric(run_id: str) -> str:
     if run_id.startswith(("e0_", "f1_")):
         return "window_acc@1"
+    if run_id.startswith("m05_"):
+        return "file_acc@1_final_only"
     if run_id.startswith("m01c_"):
         return "locked_file_acc@1"
     return "file_acc@1"
@@ -395,6 +399,11 @@ def build_moonshot_protocol_payload(
         and m04_selection.get("selection_rule", {}).get("source", "") == "validation_only"
         and is_m04_selection_validation_locked(m04_selection)
     )
+    m05_payload = build_m05_protocol_run_payload(
+        run_root=run_root,
+        category_mapping=category_mapping,
+        class_names=class_names,
+    )
     payload = {
         "protocol_definition_path": str(
             (repo_root / "results/tables/m01c_protocol_definition.json").resolve()
@@ -404,6 +413,7 @@ def build_moonshot_protocol_payload(
         "m04_final_ensemble": m04_payload,
         "m04_selection_validation_only": m04_selection_validation_only,
         "m04_no_test_derived_aggregator_or_checkpoint_selection": m04_selection_validation_only,
+        "m05_final_protocol": m05_payload,
     }
     payload["overall_pass"] = bool(
         all(protocol_checks.values())
@@ -413,6 +423,12 @@ def build_moonshot_protocol_payload(
         and m04_payload["saved_metrics_match"]
         and m04_payload["final_reported_metrics_match"]
         and m04_selection_validation_only
+        and m05_payload["selection_source"] == "cv_oof_only"
+        and m05_payload["cv_selection_artifacts_test_free"]
+        and m05_payload["fold_manifest_pass"]
+        and m05_payload["duplicate_audit_pass"]
+        and m05_payload["final_reported_metrics_match"]
+        and m05_payload["saved_metrics_match"]
     )
     return payload
 
@@ -515,6 +531,96 @@ def verify_saved_file_level_run(
     }
 
 
+def build_m05_protocol_run_payload(
+    *,
+    run_root: Path,
+    category_mapping: dict[str, str],
+    class_names: tuple[str, ...],
+) -> dict[str, Any]:
+    run_dir = run_root / M05_PROTOCOL_RUN_ID
+    metadata = load_json(run_dir / "run_metadata.json")
+    final_row = load_json(run_dir / "m05_final_test.json")["rows"][0]
+    final_summary_path = Path(str(final_row["summary_json"]))
+    final_summary = load_json(final_summary_path)
+    recomputed = recompute_metrics_from_per_file_predictions(
+        per_file_predictions_path=Path(str(final_row["per_file_predictions_csv"])),
+        class_names=class_names,
+        category_mapping=category_mapping,
+    )
+    compare_metric_dicts(
+        {
+            "acc@1": float(final_summary["acc@1"]),
+            "acc@5": float(final_summary["acc@5"]),
+            "precision_macro": float(final_summary["precision_macro"]),
+            "recall_macro": float(final_summary["recall_macro"]),
+            "f1_macro": float(final_summary["f1_macro"]),
+        },
+        metrics_to_dict(recomputed),
+        context=f"saved_file_level:{run_dir.name}",
+    )
+    compare_metric_dicts(
+        {
+            "acc@1": float(final_row["file_acc@1"]),
+            "acc@5": float(final_row["file_acc@5"]),
+            "precision_macro": float(final_row["file_macro_precision"]),
+            "recall_macro": float(final_row["file_macro_recall"]),
+            "f1_macro": float(final_row["file_macro_f1"]),
+        },
+        metrics_to_dict(recomputed),
+        context=f"final_row:{run_dir.name}",
+    )
+
+    fold_manifest = load_json(run_dir / "m05_fold_manifest.json")
+    duplicate_audit = load_json(run_dir / "m05_duplicate_audit.json")
+    model_bank = load_json(run_dir / "m05_cv_model_bank.json")
+    ensemble_selection = load_json(run_dir / "m05_cv_ensemble_selection.json")
+    search_summary = load_json(run_dir / "m05_cv_search_summary.json")
+    scorecard = load_json(run_dir / "m05_scorecard.json")
+
+    final_selected_members = json.loads(str(final_row["selected_member_ids"]))
+    final_selected_weights = json.loads(str(final_row["selected_weights"]))
+    scorecard_m05_row = next(row for row in scorecard["rows"] if str(row["protocol_id"]) == "m05")
+    fold_manifest_pass = (
+        int(fold_manifest["fold_count"]) == 5
+        and len(fold_manifest["folds"]) == 5
+        and all(len(fold["validation_relative_paths"]) == 50 for fold in fold_manifest["folds"])
+        and all(len(fold["train_relative_paths"]) == 200 for fold in fold_manifest["folds"])
+    )
+    return {
+        "run_id": run_dir.name,
+        "run_metadata": metadata,
+        "selection_source": str(metadata.get("selection_source", "")),
+        "selected_method": str(metadata.get("selected_method", "")),
+        "selected_member_ids": metadata.get("selected_member_ids", []),
+        "selected_weights": metadata.get("selected_weights", []),
+        "final_test_row": final_row,
+        "final_summary_path": str(final_summary_path.resolve()),
+        "recomputed_metrics": metrics_to_dict(recomputed),
+        "saved_metrics_match": True,
+        "final_reported_metrics_match": True,
+        "fold_manifest_path": str((run_dir / "m05_fold_manifest.json").resolve()),
+        "fold_manifest_pass": fold_manifest_pass,
+        "duplicate_audit_path": str((run_dir / "m05_duplicate_audit.json").resolve()),
+        "duplicate_audit_pass": bool(
+            duplicate_audit["passed"] and int(duplicate_audit["collision_count"]) == 0
+        ),
+        "cv_model_bank_path": str((run_dir / "m05_cv_model_bank.json").resolve()),
+        "cv_ensemble_selection_path": str((run_dir / "m05_cv_ensemble_selection.json").resolve()),
+        "cv_search_summary_path": str((run_dir / "m05_cv_search_summary.json").resolve()),
+        "cv_selection_artifacts_test_free": bool(
+            selection_artifacts_test_free(model_bank)
+            and selection_artifacts_test_free(ensemble_selection)
+            and selection_artifacts_test_free(search_summary)
+        ),
+        "scorecard_m05_row": scorecard_m05_row,
+        "final_selection_matches_metadata": (
+            str(final_row["selected_method"]) == str(metadata.get("selected_method", ""))
+            and final_selected_members == metadata.get("selected_member_ids", [])
+            and final_selected_weights == metadata.get("selected_weights", [])
+        ),
+    }
+
+
 def recompute_metrics_from_per_file_predictions(
     *,
     per_file_predictions_path: Path,
@@ -576,11 +682,15 @@ def build_leakage_audit_payload(
     run_m04_text = (repo_root / "src/smelt/training/m04.py").read_text(encoding="utf-8")
     m04_selection = load_json(repo_root / "results/tables/m04_ensemble_selection.json")
     m03_selection = load_json(repo_root / "results/tables/m03_ensemble_selection.json")
+    m05_model_bank = load_json(repo_root / "results/tables/m05_cv_model_bank.json")
+    m05_selection = load_json(repo_root / "results/tables/m05_cv_ensemble_selection.json")
+    m05_search_summary = load_json(repo_root / "results/tables/m05_cv_search_summary.json")
     exact_transformer_audit = exact_payload["runs"][EXACT_TRANSFORMER_RUN_ID]["leakage_audit"]
     exact_cnn_audit = exact_payload["runs"][EXACT_CNN_RUN_ID]["leakage_audit"]
     moonshot_audits = {
         run_id: row["leakage_audit"] for run_id, row in moonshot_payload["locked_m01c_runs"].items()
     }
+    m05_payload = moonshot_payload["m05_final_protocol"]
     checks = {
         "exact_transformer_no_overlap": exact_transformer_audit["overlap_count"] == 0,
         "exact_cnn_no_overlap": exact_cnn_audit["overlap_count"] == 0,
@@ -620,6 +730,14 @@ def build_leakage_audit_payload(
         and "validation_result.metrics.f1_macro" in run_m04_text,
         "m04_selection_logic_not_keyed_on_test_metrics": "test_result.metrics.acc_at_1"
         not in (extract_function_source(run_m04_text, "select_m04_ensemble_method")),
+        "m05_selection_source_cv_oof_only": m05_payload["selection_source"] == "cv_oof_only",
+        "m05_cv_artifacts_test_free": selection_artifacts_test_free(m05_model_bank)
+        and selection_artifacts_test_free(m05_selection)
+        and selection_artifacts_test_free(m05_search_summary),
+        "m05_fold_manifest_pass": m05_payload["fold_manifest_pass"],
+        "m05_duplicate_audit_pass": m05_payload["duplicate_audit_pass"],
+        "m05_final_reported_metrics_match": m05_payload["final_reported_metrics_match"],
+        "m05_final_selection_matches_metadata": m05_payload["final_selection_matches_metadata"],
     }
     return {
         "exact_upstream_audits": {
@@ -633,6 +751,9 @@ def build_leakage_audit_payload(
         ),
         "m04_selection_path": str(
             (repo_root / "results/tables/m04_ensemble_selection.json").resolve()
+        ),
+        "m05_selection_path": str(
+            (repo_root / "results/tables/m05_cv_ensemble_selection.json").resolve()
         ),
         "overall_pass": all(checks.values()),
     }
@@ -707,6 +828,20 @@ def build_bootstrap_rows(
             label="m04_locked_heterogeneous_ensemble",
             metric_source="single_run_file_level",
             table=m04_table,
+            class_names=class_names,
+            category_mapping=category_mapping,
+        )
+    )
+    m05_final_row = load_json(run_root / M05_PROTOCOL_RUN_ID / "m05_final_test.json")["rows"][0]
+    m05_table = load_file_prediction_table(
+        Path(str(m05_final_row["per_file_predictions_csv"])),
+        class_names,
+    )
+    rows.append(
+        bootstrap_row_from_table(
+            label="m05_grouped_cv_final_protocol",
+            metric_source="single_final_official_test",
+            table=m05_table,
             class_names=class_names,
             category_mapping=category_mapping,
         )
@@ -923,6 +1058,7 @@ def build_paper_main_results_rows(table_root: Path) -> list[dict[str, str]]:
     m01c = load_json(table_root / "m01c_seed_summary.json")
     m03 = load_json(table_root / "m03_ensemble_summary.json")["rows"][0]
     m04 = load_json(table_root / "m04_final_comparison.json")["rows"][0]
+    m05 = load_json(table_root / "m05_final_test.json")["rows"][0]
     return [
         {
             "label": "m01c_locked_seed_mean",
@@ -948,25 +1084,57 @@ def build_paper_main_results_rows(table_root: Path) -> list[dict[str, str]]:
             "file_acc@1": str(m04["ensemble_file_acc@1"]),
             "file_macro_f1": str(m04["ensemble_file_macro_f1"]),
         },
+        {
+            "label": "m05_grouped_cv_final_protocol",
+            "run_id": M05_PROTOCOL_RUN_ID,
+            "window_acc@1": "",
+            "window_macro_f1": "",
+            "file_acc@1": str(m05["file_acc@1"]),
+            "file_macro_f1": str(m05["file_macro_f1"]),
+        },
     ]
 
 
 def build_paper_diversity_rows(table_root: Path) -> list[dict[str, str]]:
-    search_rows = load_json(table_root / "m04_ensemble_search_summary.json")["rows"]
+    search_rows = load_json(table_root / "m05_cv_search_summary.json")["rows"]
     output_rows: list[dict[str, str]] = []
     for row in search_rows:
         output_rows.append(
             {
+                "protocol_id": "m05",
+                "selection_source": "cv_oof_only",
                 "method_name": str(row["method_name"]),
                 "selected": str(row["selected"]),
-                "n_members": str(row["n_members"]),
-                "validation_file_acc@1": str(row["validation_file_acc@1"]),
-                "validation_file_macro_f1": str(row["validation_file_macro_f1"]),
+                "n_members": str(len(json.loads(str(row["member_ids"])))),
+                "selection_file_acc@1": str(row["cv_file_acc@1"]),
+                "selection_file_macro_f1": str(row["cv_file_macro_f1"]),
                 "avg_pairwise_agreement": str(row["avg_pairwise_agreement"]),
                 "avg_pairwise_correlation": str(row["avg_pairwise_correlation"]),
             }
         )
     return output_rows
+
+
+def selection_artifacts_test_free(payload: Any) -> bool:
+    forbidden_key_fragments = (
+        "test_file_",
+        "test_result",
+        "official_test",
+        "test_result_path",
+    )
+    stack = [payload]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, dict):
+            for key, value in current.items():
+                lowered = str(key).lower()
+                if any(fragment in lowered for fragment in forbidden_key_fragments):
+                    return False
+                stack.append(value)
+            continue
+        if isinstance(current, list):
+            stack.extend(current)
+    return True
 
 
 def is_m04_selection_validation_locked(selection_payload: dict[str, Any]) -> bool:

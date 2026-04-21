@@ -125,6 +125,24 @@
       "training_history_path": "",
       "view_mode": "diff_all12",
       "window_size": "100"
+    },
+    {
+      "channel_set": "all12",
+      "checkpoint_path": "",
+      "confusion_matrix_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/final_test/diversity_greedy_probabilities/confusion_matrix.csv",
+      "g": "25",
+      "model_family": "grouped_cv_protocol_ensemble",
+      "per_category_accuracy_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/final_test/diversity_greedy_probabilities/per_category_accuracy.csv",
+      "prediction_bundle_path": "",
+      "primary_metric_used_at_stage": "file_acc@1_final_only",
+      "run_id": "m05_grouped_cv_refit-20260420-153535-fbfed23f",
+      "run_metadata_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/run_metadata.json",
+      "saved_summary_metrics_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/final_test/diversity_greedy_probabilities/summary_metrics.json",
+      "stride": "50",
+      "track": "moonshot-enhanced-setting",
+      "training_history_path": "",
+      "view_mode": "diff_all12",
+      "window_size": "100"
     }
   ]
 }

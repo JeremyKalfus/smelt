@@ -1,6 +1,6 @@
-avg_pairwise_agreement,avg_pairwise_correlation,method_name,n_members,selected,validation_file_acc@1,validation_file_macro_f1
-0.728888888888889,0.8325998699520203,mean_probabilities_all,10,false,90.0,87.33333333333333
-0.728888888888889,0.8325998699520203,mean_logits_all,10,false,90.0,87.33333333333334
-0.728888888888889,0.8325998699520203,weighted_probabilities_all,10,false,90.0,87.33333333333333
-0.8,0.8657567145881353,greedy_forward_probabilities,2,false,92.0,90.0
-0.7060000000000001,0.8165225349650076,diversity_greedy_probabilities,5,true,92.0,90.0
+avg_pairwise_agreement,avg_pairwise_correlation,method_name,n_members,protocol_id,selected,selection_file_acc@1,selection_file_macro_f1,selection_source
+0.7710222222222224,0.8404889941375336,mean_probabilities_all,10,m05,false,88.4,87.55688755688755,cv_oof_only
+0.7710222222222224,0.8404889941375336,mean_logits_all,10,m05,false,88.4,87.78556998556999,cv_oof_only
+0.7710222222222224,0.8404889941375336,weighted_probabilities_all,10,m05,false,88.4,87.34845154845154,cv_oof_only
+0.7193333333333335,0.7961649137665211,greedy_forward_probabilities,4,m05,false,88.8,87.98776778776778,cv_oof_only
+0.7193333333333335,0.7961649137665211,diversity_greedy_probabilities,4,m05,true,88.8,87.98776778776778,cv_oof_only

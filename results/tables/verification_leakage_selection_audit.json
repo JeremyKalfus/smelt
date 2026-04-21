@@ -635,6 +635,7 @@
   },
   "m03_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m03_ensemble_selection.json",
   "m04_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_ensemble_selection.json",
+  "m05_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_cv_ensemble_selection.json",
   "moonshot_m01c_audits": {
     "m01c_cnn_all12_diff_locked_seed13-20260402-014020-e0a36a77": {
       "boundary_violation_count": 0,
@@ -1602,6 +1603,12 @@
     "m04_ensemble_selection_validation_only": true,
     "m04_selection_logic_not_keyed_on_test_metrics": true,
     "m04_selection_logic_uses_validation_metrics": true,
+    "m05_cv_artifacts_test_free": true,
+    "m05_duplicate_audit_pass": true,
+    "m05_final_reported_metrics_match": true,
+    "m05_final_selection_matches_metadata": true,
+    "m05_fold_manifest_pass": true,
+    "m05_selection_source_cv_oof_only": true,
     "moonshot_aggregator_selection_validation_only": true,
     "moonshot_checkpoint_selection_validation_only": true,
     "moonshot_no_boundary_violation": true,

@@ -202,6 +202,8 @@ def discover_run_dirs(run_root: Path) -> tuple[Path, ...]:
 
 
 def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
+    if (run_dir / "m05_final_test.json").is_file():
+        return build_m05_protocol_registry_entry(run_dir)
     summary = load_json_file(run_dir / "summary_metrics.json")
     metadata = load_json_file(run_dir / "run_metadata.json")
     config = load_yaml_file(run_dir / "resolved_config.yaml")
@@ -282,6 +284,54 @@ def build_run_registry_entry(run_dir: Path) -> dict[str, str]:
         ),
     }
     return entry
+
+
+def build_m05_protocol_registry_entry(run_dir: Path) -> dict[str, str]:
+    metadata = load_json_file(run_dir / "run_metadata.json")
+    config = load_yaml_file(run_dir / "resolved_config.yaml")
+    final_row = load_json_file(run_dir / "m05_final_test.json")["rows"][0]
+    final_summary_path = Path(str(final_row["summary_json"]))
+    final_summary = load_json_file(final_summary_path)
+    selected_method = str(final_row["selected_method"])
+    return {
+        "run_id": run_dir.name,
+        "ticket_stage": infer_ticket_stage(run_dir.name),
+        "track": str(metadata.get("track", "moonshot-enhanced-setting")),
+        "model_family": "grouped_cv_protocol_ensemble",
+        "channel_set": stringify(config.get("channel_set", "")),
+        "view_mode": "diff_all12",
+        "g": stringify(config.get("diff_period")),
+        "window_size": stringify(config.get("window_size")),
+        "stride": stringify(config.get("stride")),
+        "train_window_count": "",
+        "validation_window_count": "",
+        "test_window_count": "",
+        "locked_primary_aggregator": selected_method,
+        "primary_checkpoint_selection_metric": "cv_file_acc@1_then_cv_file_macro_f1_then_diversity",
+        "acc@1": stringify(final_summary.get("acc@1")),
+        "acc@5": stringify(final_summary.get("acc@5")),
+        "macro_precision": stringify(final_summary.get("precision_macro")),
+        "macro_recall": stringify(final_summary.get("recall_macro")),
+        "macro_f1": stringify(final_summary.get("f1_macro")),
+        "resolved_config_path": resolve_artifact_path(run_dir / "resolved_config.yaml"),
+        "summary_metrics_path": resolve_artifact_path(final_summary_path),
+        "confusion_matrix_path": stringify(final_row.get("confusion_matrix_csv", "")),
+        "per_category_accuracy_path": stringify(final_row.get("per_category_accuracy_csv", "")),
+        "checkpoint_path": "",
+        "training_history_path": "",
+        "run_metadata_path": resolve_artifact_path(run_dir / "run_metadata.json"),
+        "device": "",
+        "batch_size": "",
+        "gradient_accumulation_steps": "",
+        "effective_batch_size": "",
+        "parameter_count": "",
+        "architecture_summary_path": "",
+        "predictions_path": "",
+        "research_view_manifest_path": "",
+        "moonshot_view_manifest_path": "",
+        "file_level_metrics_path": "",
+        "feature_count": "12",
+    }
 
 
 def build_moonshot_protocol_definition(config_path: Path) -> dict[str, Any]:
@@ -744,6 +794,8 @@ def build_recipe_differences(
 
 
 def infer_ticket_stage(run_id: str) -> str:
+    if run_id.startswith("m05_"):
+        return "m05"
     if run_id.startswith("m04_"):
         return "m04"
     if run_id.startswith("m03_"):

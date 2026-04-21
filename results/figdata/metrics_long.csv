@@ -149,6 +149,11 @@ all12,25,acc@5,88.84462151394422,patch_transformer,m04_patch_transformer_all12_d
 all12,25,macro_precision,62.51196858696858,patch_transformer,m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727,50,m04,moonshot-enhanced-setting,diff_all12,100
 all12,25,macro_recall,62.55151515151515,patch_transformer,m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727,50,m04,moonshot-enhanced-setting,diff_all12,100
 all12,25,macro_f1,61.037123351713475,patch_transformer,m04_patch_transformer_all12_diff_seed19-20260403-200315-19279727,50,m04,moonshot-enhanced-setting,diff_all12,100
+all12,25,acc@1,88.0,grouped_cv_protocol_ensemble,m05_grouped_cv_refit-20260420-153535-fbfed23f,50,m05,moonshot-enhanced-setting,diff_all12,100
+all12,25,acc@5,100.0,grouped_cv_protocol_ensemble,m05_grouped_cv_refit-20260420-153535-fbfed23f,50,m05,moonshot-enhanced-setting,diff_all12,100
+all12,25,macro_precision,83.0,grouped_cv_protocol_ensemble,m05_grouped_cv_refit-20260420-153535-fbfed23f,50,m05,moonshot-enhanced-setting,diff_all12,100
+all12,25,macro_recall,88.0,grouped_cv_protocol_ensemble,m05_grouped_cv_refit-20260420-153535-fbfed23f,50,m05,moonshot-enhanced-setting,diff_all12,100
+all12,25,macro_f1,84.66666666666666,grouped_cv_protocol_ensemble,m05_grouped_cv_refit-20260420-153535-fbfed23f,50,m05,moonshot-enhanced-setting,diff_all12,100
 ,25,acc@1,51.39442231075697,inception,t10b_inception_diff_supervised_w100_g25-20260401-144426-c9f0ef66,50,t10b,research-extension,diff,100
 ,25,acc@5,87.84860557768924,inception,t10b_inception_diff_supervised_w100_g25-20260401-144426-c9f0ef66,50,t10b,research-extension,diff,100
 ,25,macro_precision,54.631826260047674,inception,t10b_inception_diff_supervised_w100_g25-20260401-144426-c9f0ef66,50,t10b,research-extension,diff,100

@@ -1,0 +1,10 @@
+{
+  "a1_pass": true,
+  "a2_pass": true,
+  "confusion_total": 502,
+  "independent_recompute_match": true,
+  "saved_confusion_match": true,
+  "saved_per_category_match": true,
+  "saved_summary_match": true,
+  "test_example_count": 502
+}

@@ -2,3 +2,4 @@ bootstrap_seed,file_acc@1_ci_lower,file_acc@1_ci_upper,file_macro_f1_ci_lower,fi
 17,52.0,78.0,51.17763573232323,73.33333333333333,exact_upstream_cnn_file_level,single_run_file_level,5000,50,66.0,59.90476190476189
 17,76.0,92.0,75.34707942520443,89.69263654608483,m01c_locked_seed_mean_reference,mean_across_locked_seed_runs,5000,50,84.66666666666667,81.0
 17,86.0,100.0,86.87484217171718,100.0,m04_locked_heterogeneous_ensemble,single_run_file_level,5000,50,94.0,91.99999999999999
+17,78.0,96.0,77.70092838196288,93.93939393939394,m05_grouped_cv_final_protocol,single_final_official_test,5000,50,88.0,84.66666666666666

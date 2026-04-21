@@ -2,7 +2,7 @@
 
 Smelt is a smell-recognition research repo built on top of SMELLNET-BASE. It started as a benchmark-faithful reproduction effort for SCENTFORMER-style baselines and then grew into an enhanced-setting moonshot system that uses all 12 sensor channels, grouped file-level validation, validation-locked file aggregation, and heterogeneous ensembling.
 
-This README is the repo summary: what was reproduced, what was tried, what failed, what worked, and what the current best tracked numbers are.
+This README is the repo summary: what was reproduced, what was tried, what failed, what worked, and which numbers are exploratory versus final-definitive.
 
 ## TL;DR
 
@@ -20,7 +20,11 @@ This README is the repo summary: what was reproduced, what was tried, what faile
   - no candidate-level official-test metrics during search
   - freeze the final bank, aggregator behavior, and epoch budgets before refit
   - refit on full official training, then evaluate the official test at the very end
-- Current best tracked exploratory result:
+- Current final-definitive post-audit result (`m05`):
+  - `88.0` file-level Top-1
+  - `100.0` file-level Top-5
+  - `84.6667` file-level macro-F1
+- Strongest tracked exploratory result (`m04`):
   - `94.0` file-level Top-1
   - `100.0` file-level Top-5
   - `92.0` file-level macro-F1
@@ -94,13 +98,23 @@ This track explicitly aims for best detector performance, not strict benchmark p
   - `2512` train windows
   - `502` test windows
 
-### Moonshot grouped-validation setup
+### Legacy grouped-holdout setup (`m01c`-`m04`)
 
-The locked moonshot protocol uses one validation file per class from the training split:
+The pre-`m05` locked moonshot path used one validation file per class from the training split:
 
 - `2013` train windows
 - `499` validation windows
 - `502` test windows
+
+### `m05` grouped 5-fold CV setup
+
+The final post-audit `m05` protocol replaces the tiny deterministic grouped holdout with explicit grouped folds:
+
+- `5` folds over the official `offline_training` split
+- each fold holds out exactly `1` training CSV per class as validation
+- each fold contains `200` train CSVs and `50` validation CSVs
+- every official training CSV serves as validation exactly once
+- the official `offline_testing` split is untouched during CV selection and evaluated exactly once after final refit
 
 ## SmellNet paper reference points
 
@@ -307,9 +321,9 @@ Interpretation from `m01b`:
 - aggregation was a major driver of file-level performance
 - file-level peak was not stable enough yet to be the final headline
 
-### `m01c`: locked moonshot protocol
+### `m01c`: locked grouped-holdout moonshot baseline
 
-This is the first defensible moonshot summary because aggregator selection and checkpoint selection were both locked on validation only.
+This is the first defensible grouped-holdout moonshot summary because aggregator selection and checkpoint selection were both locked on validation only.
 
 Protocol:
 
@@ -412,7 +426,7 @@ Interpretation:
 
 ### `m04`: heterogeneous moonshot ensemble bank
 
-This is the current best tracked result, but it is not the final-definitive protocol.
+This is the current best tracked exploratory result, but it is not the final-definitive protocol.
 
 Model bank summary:
 
@@ -446,7 +460,7 @@ Final file-level metrics:
 - Macro F1: `92.0`
 
 Interpretation:
-- this is the strongest result in the repo
+- this is the strongest tracked exploratory result in the repo
 - diversity-aware selection beat naive averaging
 - the best ensemble was multi-family + multi-seed
 - `m04` should still be treated as exploratory because candidate-level official-test
@@ -471,9 +485,34 @@ Protocol:
 - refit only the frozen selected members on the full official training split
 - evaluate the official test only after finalization
 
+Selected CV / OOF ensemble:
+
+- method: `diversity_greedy_probabilities`
+- selected members:
+  - `m01c_cnn_all12_diff_locked_seed42`
+  - `m01c_cnn_all12_diff_locked_seed7`
+  - `m04_deep_temporal_resnet_all12_diff_seed7`
+  - `m04_hinception_all12_diff_seed29`
+- weights: `[0.25, 0.25, 0.25, 0.25]`
+- CV / OOF file metrics used for selection:
+  - Top-1: `88.8`
+  - Top-5: `98.4`
+  - Macro precision: `89.3190`
+  - Macro recall: `88.8`
+  - Macro F1: `87.9878`
+
+Final official-test metrics after full-train refit:
+
+- Top-1: `88.0`
+- Top-5: `100.0`
+- Macro precision: `83.0`
+- Macro recall: `88.0`
+- Macro F1: `84.6667`
+
 Interpretation:
 - this is the protocol to use for final claims after the audit
-- if `m05` lands below `m04`, prefer the lower `m05` number rather than defending the older score
+- it landed below `m04` by `6.0` Top-1 points and about `7.33` macro-F1 points
+- the most likely reason is the protocol tightening itself: grouped 5-fold CV and strict search-time test isolation removed the old opportunity to peek through candidate-level official-test outputs
 
 ## What actually mattered
 
@@ -498,11 +537,13 @@ We explicitly ran and preserved:
 - eval-only replay from checkpoints
 - independent recomputation from saved predictions
 - split leakage audits
+- exact duplicate-content audits across train folds, validation folds, and official test
 - boundary checks for window generation
 - train-only standardization checks
 - shuffled-label controls
 - validation-only aggregator selection
 - validation-only checkpoint selection
+- CV / OOF-only ensemble and bank selection for `m05`
 - repeated exact-upstream regression checks
 
 Representative anti-cheat numbers:
@@ -610,14 +651,16 @@ python scripts/smelt_verification_export.py \
 
 If you want the current headline artifacts first:
 
+- final-definitive `m05` official-test summary:
+  - [results/tables/m05_final_test.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_final_test.json)
+- final-definitive `m05` scorecard versus earlier protocols:
+  - [results/tables/m05_scorecard.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_scorecard.json)
+- `m05` CV / OOF ensemble-selection details:
+  - [results/tables/m05_cv_ensemble_selection.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_cv_ensemble_selection.json)
+- current exploratory `m04` comparison:
+  - [results/tables/m04_final_comparison.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_final_comparison.json)
 - locked moonshot baseline summary:
   - [results/tables/m01c_seed_summary.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m01c_seed_summary.json)
-- locked m03 ensemble summary:
-  - [results/tables/m03_ensemble_summary.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m03_ensemble_summary.json)
-- current best m04 comparison:
-  - [results/tables/m04_final_comparison.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_final_comparison.json)
-- m04 ensemble-selection details:
-  - [results/tables/m04_ensemble_selection.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_ensemble_selection.json)
 
 If you want the verification and paper-ready exports first:
 
@@ -641,7 +684,11 @@ If you want the verification and paper-ready exports first:
 
 If you care about benchmark-faithful comparison, use the `exact-upstream` track.
 
-If you care about final-definitive moonshot claims, use `m05`.
+If you care about final-definitive moonshot claims, use `m05`:
+
+- `88.0` file-level Top-1
+- `100.0` file-level Top-5
+- `84.6667` file-level macro-F1
 
 If you care about the strongest tracked exploratory number in this repo, the current `m04`
 moonshot heterogeneous ensemble is:
