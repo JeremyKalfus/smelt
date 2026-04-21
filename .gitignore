@@ -19,3 +19,6 @@ checkpoints/
 /outreach_*.json
 /docs/research-extension/outreach*_personalized.md
 /docs/research-extension/paper_outreach_packet.md
+
+# generated checkpoint artifacts
+/results/**/*.pt
