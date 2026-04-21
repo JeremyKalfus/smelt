@@ -1,0 +1,47 @@
+batch_size: 32
+candidate_file_aggregators:
+- mean_logits
+- mean_probabilities
+- majority_vote
+category_map_path: configs/exact-upstream/category_map.json
+channel_set: all12
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+config_path: /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m01c_cnn_all12_diff_locked_seed42.yaml
+data_root: /Users/jeremykalfus/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/71bcae740b885be23db5f72933a8bc55c4e18ad7/data
+device: auto
+diff_period: 25
+epochs: 120
+exact_upstream_regression_path: artifacts/methods/m01b_exact_upstream_regression_smoke.json
+experiment_name: m01c_cnn_all12_diff_locked_seed42
+fold_count: 5
+fold_index: 0
+grad_clip: 1.0
+gradient_accumulation_steps: 1
+label_smoothing: 0.05
+locked_protocol: true
+lr: 0.003
+model:
+  channels:
+  - 64
+  - 128
+  - 256
+  dropout: 0.2
+  kernel_size: 5
+  use_batchnorm: true
+model_name: cnn
+num_workers: 0
+output_root: results/runs
+primary_file_aggregator: ''
+protocol: m05
+scheduler_eta_min: 0.0001
+scheduler_name: cosine
+scheduler_t_max: 120
+seed: 42
+shuffle_train_labels: false
+stride: 50
+test_evaluation_enabled: false
+track: moonshot-enhanced-setting
+validation_file_aggregator: ''
+validation_files_per_class: 1
+weight_decay: 0.0005
+window_size: 100

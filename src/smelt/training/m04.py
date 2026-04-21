@@ -77,7 +77,7 @@ class EnsembleCandidateResult:
     member_run_ids: tuple[str, ...]
     weights: tuple[float, ...]
     validation_result: Any
-    test_result: Any
+    test_result: Any | None
     avg_pairwise_agreement: float
     avg_pairwise_correlation: float
 
@@ -260,6 +260,38 @@ def evaluate_m04_ensemble_candidates(
     category_mapping: dict[str, str],
     max_members: int = M04_MAX_ENSEMBLE_MEMBERS,
 ) -> tuple[dict[str, Any], dict[str, EnsembleCandidateResult]]:
+    return evaluate_m04_like_ensemble_candidates(
+        validation_bundles=validation_bundles,
+        test_bundles=test_bundles,
+        category_mapping=category_mapping,
+        max_members=max_members,
+        include_test_metrics=True,
+    )
+
+
+def evaluate_cv_ensemble_candidates(
+    *,
+    validation_bundles: dict[str, FileScoreBundle],
+    category_mapping: dict[str, str],
+    max_members: int = M04_MAX_ENSEMBLE_MEMBERS,
+) -> tuple[dict[str, Any], dict[str, EnsembleCandidateResult]]:
+    return evaluate_m04_like_ensemble_candidates(
+        validation_bundles=validation_bundles,
+        test_bundles=None,
+        category_mapping=category_mapping,
+        max_members=max_members,
+        include_test_metrics=False,
+    )
+
+
+def evaluate_m04_like_ensemble_candidates(
+    *,
+    validation_bundles: dict[str, FileScoreBundle],
+    test_bundles: dict[str, FileScoreBundle] | None,
+    category_mapping: dict[str, str],
+    max_members: int,
+    include_test_metrics: bool,
+) -> tuple[dict[str, Any], dict[str, EnsembleCandidateResult]]:
     run_ids = tuple(sorted(validation_bundles))
     diversity_lookup = build_pairwise_diversity_lookup(validation_bundles)
     validation_single_metrics = {
@@ -342,26 +374,42 @@ def evaluate_m04_ensemble_candidates(
         "selected_member_run_ids": list(candidates[selected_method].member_run_ids),
         "selected_weights": list(candidates[selected_method].weights),
         "candidates": [
-            candidate_to_dict(candidates[method_name]) for method_name in M04_ENSEMBLE_METHODS
+            candidate_to_dict(
+                candidates[method_name],
+                include_test_metrics=include_test_metrics,
+            )
+            for method_name in M04_ENSEMBLE_METHODS
         ],
     }
     return selection_payload, candidates
 
 
-def candidate_to_dict(candidate: EnsembleCandidateResult) -> dict[str, Any]:
-    return {
+def candidate_to_dict(
+    candidate: EnsembleCandidateResult,
+    *,
+    include_test_metrics: bool,
+) -> dict[str, Any]:
+    payload = {
         "method_name": candidate.method_name,
         "member_run_ids": list(candidate.member_run_ids),
         "weights": list(candidate.weights),
         "validation_file_acc@1": candidate.validation_result.metrics.acc_at_1,
         "validation_file_acc@5": candidate.validation_result.metrics.acc_at_5,
         "validation_file_macro_f1": candidate.validation_result.metrics.f1_macro,
-        "test_file_acc@1": candidate.test_result.metrics.acc_at_1,
-        "test_file_acc@5": candidate.test_result.metrics.acc_at_5,
-        "test_file_macro_f1": candidate.test_result.metrics.f1_macro,
         "avg_pairwise_agreement": candidate.avg_pairwise_agreement,
         "avg_pairwise_correlation": candidate.avg_pairwise_correlation,
     }
+    if include_test_metrics:
+        if candidate.test_result is None:
+            raise M04Error("test metrics were requested for a candidate without test_result")
+        payload.update(
+            {
+                "test_file_acc@1": candidate.test_result.metrics.acc_at_1,
+                "test_file_acc@5": candidate.test_result.metrics.acc_at_5,
+                "test_file_macro_f1": candidate.test_result.metrics.f1_macro,
+            }
+        )
+    return payload
 
 
 def select_m04_ensemble_method(candidates: dict[str, EnsembleCandidateResult]) -> str:
@@ -383,7 +431,7 @@ def evaluate_fixed_subset_candidate(
     method_name: str,
     member_run_ids: tuple[str, ...],
     validation_bundles: dict[str, FileScoreBundle],
-    test_bundles: dict[str, FileScoreBundle],
+    test_bundles: dict[str, FileScoreBundle] | None,
     category_mapping: dict[str, str],
     mode: str,
     weights: tuple[float, ...],
@@ -396,12 +444,16 @@ def evaluate_fixed_subset_candidate(
         method_name=method_name,
         weights=weights,
     )
-    test_result = evaluate_score_ensemble(
-        bundles=tuple(test_bundles[run_id] for run_id in member_run_ids),
-        category_mapping=category_mapping,
-        mode=mode,
-        method_name=method_name,
-        weights=weights,
+    test_result = (
+        evaluate_score_ensemble(
+            bundles=tuple(test_bundles[run_id] for run_id in member_run_ids),
+            category_mapping=category_mapping,
+            mode=mode,
+            method_name=method_name,
+            weights=weights,
+        )
+        if test_bundles is not None
+        else None
     )
     diversity = summarize_subset_diversity(member_run_ids, diversity_lookup)
     return EnsembleCandidateResult(
@@ -420,7 +472,7 @@ def greedy_subset_candidate(
     method_name: str,
     run_ids: tuple[str, ...],
     validation_bundles: dict[str, FileScoreBundle],
-    test_bundles: dict[str, FileScoreBundle],
+    test_bundles: dict[str, FileScoreBundle] | None,
     category_mapping: dict[str, str],
     diversity_lookup: dict[tuple[str, str], dict[str, float]],
     max_members: int,

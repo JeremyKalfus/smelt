@@ -1,0 +1,92 @@
+{
+  "candidates": [
+    {
+      "aggregator": "majority_vote",
+      "epoch": 47,
+      "validation_file_metrics": {
+        "acc@1": 68.0,
+        "acc@5": 96.0,
+        "f1_macro": 60.66666666666667,
+        "precision_macro": 57.33333333333333,
+        "recall_macro": 68.0
+      },
+      "validation_file_score_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_candidates/majority_vote/validation_file_scores.npz",
+      "validation_prediction_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_candidates/majority_vote/validation_predictions.npz",
+      "validation_report_paths": {
+        "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/majority_vote/confusion_matrix.csv",
+        "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/majority_vote/per_category_accuracy.csv",
+        "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/majority_vote/per_file_predictions.csv",
+        "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/majority_vote",
+        "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/majority_vote/summary_metrics.json"
+      },
+      "validation_window_metrics": {
+        "acc@1": 46.06299212598425,
+        "acc@5": 89.56692913385827,
+        "f1_macro": 44.325441284765695,
+        "precision_macro": 48.09378807467043,
+        "recall_macro": 45.88253968253967
+      }
+    },
+    {
+      "aggregator": "mean_logits",
+      "epoch": 48,
+      "validation_file_metrics": {
+        "acc@1": 76.0,
+        "acc@5": 100.0,
+        "f1_macro": 68.66666666666666,
+        "precision_macro": 65.0,
+        "recall_macro": 76.0
+      },
+      "validation_file_score_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_candidates/mean_logits/validation_file_scores.npz",
+      "validation_prediction_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_candidates/mean_logits/validation_predictions.npz",
+      "validation_report_paths": {
+        "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_logits/confusion_matrix.csv",
+        "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_logits/per_category_accuracy.csv",
+        "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_logits/per_file_predictions.csv",
+        "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_logits",
+        "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_logits/summary_metrics.json"
+      },
+      "validation_window_metrics": {
+        "acc@1": 46.8503937007874,
+        "acc@5": 89.37007874015748,
+        "f1_macro": 44.963349008084776,
+        "precision_macro": 48.59599304204568,
+        "recall_macro": 46.41890331890331
+      }
+    },
+    {
+      "aggregator": "mean_probabilities",
+      "epoch": 39,
+      "validation_file_metrics": {
+        "acc@1": 70.0,
+        "acc@5": 100.0,
+        "f1_macro": 63.33333333333333,
+        "precision_macro": 60.0,
+        "recall_macro": 70.0
+      },
+      "validation_file_score_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_candidates/mean_probabilities/validation_file_scores.npz",
+      "validation_prediction_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_candidates/mean_probabilities/validation_predictions.npz",
+      "validation_report_paths": {
+        "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_probabilities/confusion_matrix.csv",
+        "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_probabilities/per_category_accuracy.csv",
+        "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_probabilities/per_file_predictions.csv",
+        "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_probabilities",
+        "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m04_hinception_all12_diff_seed17/fold_1/runs/m04_hinception_all12_diff_seed17_m05_fold1-20260420-192834-1a990d57/validation_file_level/mean_probabilities/summary_metrics.json"
+      },
+      "validation_window_metrics": {
+        "acc@1": 45.47244094488189,
+        "acc@5": 89.96062992125984,
+        "f1_macro": 43.17668993994429,
+        "precision_macro": 46.95871285577167,
+        "recall_macro": 45.08311688311689
+      }
+    }
+  ],
+  "fold_count": 5,
+  "fold_index": 1,
+  "member_id": "m04_hinception_all12_diff_seed17",
+  "protocol": "m05",
+  "selected_aggregator": "mean_logits",
+  "selected_epoch": 48,
+  "selection_source": "cv_oof_only"
+}

@@ -1,0 +1,19 @@
+{
+  "rows": [
+    {
+      "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/final_test/diversity_greedy_probabilities/confusion_matrix.csv",
+      "file_acc@1": "88.0",
+      "file_acc@5": "100.0",
+      "file_macro_f1": "84.66666666666666",
+      "file_macro_precision": "83.0",
+      "file_macro_recall": "88.0",
+      "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/final_test/diversity_greedy_probabilities/per_category_accuracy.csv",
+      "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/final_test/diversity_greedy_probabilities/per_file_predictions.csv",
+      "protocol_id": "m05",
+      "selected_member_ids": "[\"m01c_cnn_all12_diff_locked_seed42\", \"m01c_cnn_all12_diff_locked_seed7\", \"m04_deep_temporal_resnet_all12_diff_seed7\", \"m04_hinception_all12_diff_seed29\"]",
+      "selected_method": "diversity_greedy_probabilities",
+      "selected_weights": "[0.25, 0.25, 0.25, 0.25]",
+      "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/final_test/diversity_greedy_probabilities/summary_metrics.json"
+    }
+  ]
+}

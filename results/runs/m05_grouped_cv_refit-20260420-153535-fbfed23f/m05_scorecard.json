@@ -1,0 +1,32 @@
+{
+  "rows": [
+    {
+      "file_acc@1": "84.66666666666667",
+      "file_macro_f1": "80.99999999999999",
+      "official_test_hygiene": "single-run test only; no cv",
+      "protocol_id": "m01c",
+      "selection_protocol": "single grouped holdout, locked per-run aggregator/checkpoint"
+    },
+    {
+      "file_acc@1": "90.0",
+      "file_macro_f1": "87.33333333333333",
+      "official_test_hygiene": "search still evaluates all methods on official test after selection",
+      "protocol_id": "m03",
+      "selection_protocol": "validation-selected cross-seed ensemble"
+    },
+    {
+      "file_acc@1": "94.0",
+      "file_macro_f1": "91.99999999999999",
+      "official_test_hygiene": "candidate-level official-test metrics existed during search/output",
+      "protocol_id": "m04",
+      "selection_protocol": "validation-selected heterogeneous ensemble bank"
+    },
+    {
+      "file_acc@1": "88.0",
+      "file_macro_f1": "84.66666666666666",
+      "official_test_hygiene": "no candidate-level official-test metrics before finalization",
+      "protocol_id": "m05",
+      "selection_protocol": "grouped 5-fold cv/oof search, frozen aggregator + epoch budget, single final test"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+file_acc@1,file_macro_f1,official_test_hygiene,protocol_id,selection_protocol
+84.66666666666667,80.99999999999999,single-run test only; no cv,m01c,"single grouped holdout, locked per-run aggregator/checkpoint"
+90.0,87.33333333333333,search still evaluates all methods on official test after selection,m03,validation-selected cross-seed ensemble
+94.0,91.99999999999999,candidate-level official-test metrics existed during search/output,m04,validation-selected heterogeneous ensemble bank
+88.0,84.66666666666666,no candidate-level official-test metrics before finalization,m05,"grouped 5-fold cv/oof search, frozen aggregator + epoch budget, single final test"

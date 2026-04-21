@@ -1,0 +1,42 @@
+{
+  "members": [
+    {
+      "config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m01c_cnn_all12_diff_locked_seed42.yaml",
+      "cv_oof_file_acc@1": 85.2,
+      "cv_oof_file_macro_f1": 84.39246309246309,
+      "frozen_epoch_budget": 63,
+      "member_id": "m01c_cnn_all12_diff_locked_seed42",
+      "selected_aggregator": "majority_vote",
+      "selected_weight": 0.25
+    },
+    {
+      "config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m01c_cnn_all12_diff_locked_seed7.yaml",
+      "cv_oof_file_acc@1": 87.6,
+      "cv_oof_file_macro_f1": 87.2004329004329,
+      "frozen_epoch_budget": 59,
+      "member_id": "m01c_cnn_all12_diff_locked_seed7",
+      "selected_aggregator": "mean_logits",
+      "selected_weight": 0.25
+    },
+    {
+      "config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_deep_temporal_resnet_all12_diff_seed7.yaml",
+      "cv_oof_file_acc@1": 80.4,
+      "cv_oof_file_macro_f1": 80.32424242424243,
+      "frozen_epoch_budget": 61,
+      "member_id": "m04_deep_temporal_resnet_all12_diff_seed7",
+      "selected_aggregator": "mean_logits",
+      "selected_weight": 0.25
+    },
+    {
+      "config_path": "/Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_hinception_all12_diff_seed29.yaml",
+      "cv_oof_file_acc@1": 63.6,
+      "cv_oof_file_macro_f1": 62.546814296814304,
+      "frozen_epoch_budget": 50,
+      "member_id": "m04_hinception_all12_diff_seed29",
+      "selected_aggregator": "mean_probabilities",
+      "selected_weight": 0.25
+    }
+  ],
+  "selected_method": "diversity_greedy_probabilities",
+  "selection_source": "cv_oof_only"
+}

@@ -1,0 +1,17 @@
+{
+  "device": "mps",
+  "effective_batch_size": 32,
+  "fold_count": 5,
+  "fold_index": 3,
+  "fold_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed7/fold_3/runs/m01c_cnn_all12_diff_locked_seed7_m05_fold3-20260420-154559-6661c77f/m05_fold_selection.json",
+  "gradient_accumulation_steps": 1,
+  "locked_primary_aggregator": "majority_vote",
+  "member_id": "m01c_cnn_all12_diff_locked_seed7",
+  "mode": "grouped_cv_fold_model",
+  "model_family": "cnn",
+  "official_test_evaluated": false,
+  "parameter_count": 222834,
+  "protocol": "m05",
+  "selection_source": "cv_oof_only",
+  "track": "moonshot-enhanced-setting"
+}

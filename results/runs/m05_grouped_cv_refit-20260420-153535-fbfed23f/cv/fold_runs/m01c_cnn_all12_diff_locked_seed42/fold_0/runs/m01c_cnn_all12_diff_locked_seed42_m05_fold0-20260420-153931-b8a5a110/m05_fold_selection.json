@@ -1,0 +1,92 @@
+{
+  "candidates": [
+    {
+      "aggregator": "majority_vote",
+      "epoch": 49,
+      "validation_file_metrics": {
+        "acc@1": 80.0,
+        "acc@5": 92.0,
+        "f1_macro": 74.99999999999999,
+        "precision_macro": 72.66666666666666,
+        "recall_macro": 80.0
+      },
+      "validation_file_score_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_candidates/majority_vote/validation_file_scores.npz",
+      "validation_prediction_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_candidates/majority_vote/validation_predictions.npz",
+      "validation_report_paths": {
+        "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/majority_vote/confusion_matrix.csv",
+        "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/majority_vote/per_category_accuracy.csv",
+        "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/majority_vote/per_file_predictions.csv",
+        "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/majority_vote",
+        "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/majority_vote/summary_metrics.json"
+      },
+      "validation_window_metrics": {
+        "acc@1": 56.66003976143141,
+        "acc@5": 91.45129224652088,
+        "f1_macro": 55.909197478195836,
+        "precision_macro": 62.51136631865465,
+        "recall_macro": 56.75483405483405
+      }
+    },
+    {
+      "aggregator": "mean_logits",
+      "epoch": 118,
+      "validation_file_metrics": {
+        "acc@1": 80.0,
+        "acc@5": 98.0,
+        "f1_macro": 74.66666666666666,
+        "precision_macro": 72.33333333333333,
+        "recall_macro": 80.0
+      },
+      "validation_file_score_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_candidates/mean_logits/validation_file_scores.npz",
+      "validation_prediction_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_candidates/mean_logits/validation_predictions.npz",
+      "validation_report_paths": {
+        "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_logits/confusion_matrix.csv",
+        "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_logits/per_category_accuracy.csv",
+        "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_logits/per_file_predictions.csv",
+        "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_logits",
+        "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_logits/summary_metrics.json"
+      },
+      "validation_window_metrics": {
+        "acc@1": 60.039761431411534,
+        "acc@5": 90.25844930417495,
+        "f1_macro": 59.02140317720412,
+        "precision_macro": 62.22680112285375,
+        "recall_macro": 59.994227994228
+      }
+    },
+    {
+      "aggregator": "mean_probabilities",
+      "epoch": 118,
+      "validation_file_metrics": {
+        "acc@1": 80.0,
+        "acc@5": 96.0,
+        "f1_macro": 74.99999999999999,
+        "precision_macro": 72.66666666666666,
+        "recall_macro": 80.0
+      },
+      "validation_file_score_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_candidates/mean_probabilities/validation_file_scores.npz",
+      "validation_prediction_bundle_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_candidates/mean_probabilities/validation_predictions.npz",
+      "validation_report_paths": {
+        "confusion_matrix_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_probabilities/confusion_matrix.csv",
+        "per_category_accuracy_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_probabilities/per_category_accuracy.csv",
+        "per_file_predictions_csv": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_probabilities/per_file_predictions.csv",
+        "report_dir": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_probabilities",
+        "summary_json": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/cv/fold_runs/m01c_cnn_all12_diff_locked_seed42/fold_0/runs/m01c_cnn_all12_diff_locked_seed42_m05_fold0-20260420-153931-b8a5a110/validation_file_level/mean_probabilities/summary_metrics.json"
+      },
+      "validation_window_metrics": {
+        "acc@1": 60.039761431411534,
+        "acc@5": 90.25844930417495,
+        "f1_macro": 59.02140317720412,
+        "precision_macro": 62.22680112285375,
+        "recall_macro": 59.994227994228
+      }
+    }
+  ],
+  "fold_count": 5,
+  "fold_index": 0,
+  "member_id": "m01c_cnn_all12_diff_locked_seed42",
+  "protocol": "m05",
+  "selected_aggregator": "mean_probabilities",
+  "selected_epoch": 118,
+  "selection_source": "cv_oof_only"
+}

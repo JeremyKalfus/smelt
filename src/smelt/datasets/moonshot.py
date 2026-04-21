@@ -47,6 +47,43 @@ class GroupedValidationSplit:
 
 
 @dataclass(slots=True)
+class GroupedValidationFold:
+    fold_index: int
+    fold_count: int
+    train_records: tuple[SensorFileRecord, ...]
+    validation_records: tuple[SensorFileRecord, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "fold_index": self.fold_index,
+            "fold_count": self.fold_count,
+            "train_relative_paths": [record.relative_path for record in self.train_records],
+            "validation_relative_paths": [
+                record.relative_path for record in self.validation_records
+            ],
+            "validation_relative_paths_by_class": {
+                record.class_name: record.relative_path for record in self.validation_records
+            },
+        }
+
+
+@dataclass(slots=True)
+class GroupedFoldManifest:
+    fold_count: int
+    files_per_class: int
+    class_names: tuple[str, ...]
+    folds: tuple[GroupedValidationFold, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "fold_count": self.fold_count,
+            "files_per_class": self.files_per_class,
+            "class_names": list(self.class_names),
+            "folds": [fold.to_dict() for fold in self.folds],
+        }
+
+
+@dataclass(slots=True)
 class MoonshotPreparedSplits:
     class_names: tuple[str, ...]
     feature_names: tuple[str, ...]
@@ -56,8 +93,8 @@ class MoonshotPreparedSplits:
     validation_records: tuple[SensorFileRecord, ...]
     test_records: tuple[SensorFileRecord, ...]
     standardized_train_split: WindowedSplit
-    standardized_validation_split: WindowedSplit
-    standardized_test_split: WindowedSplit
+    standardized_validation_split: WindowedSplit | None
+    standardized_test_split: WindowedSplit | None
     standardizer: StandardizationStats
     view_manifest: dict[str, Any]
 
@@ -84,16 +121,101 @@ def deterministic_grouped_validation_split(
             )
         selected_train.extend(records[:-validation_files_per_class])
         selected_validation.extend(records[-validation_files_per_class:])
-    overlap = {record.relative_path for record in selected_train} & {
-        record.relative_path for record in selected_validation
-    }
-    if overlap:
-        raise MoonshotDataError(f"grouped validation split leaked files: {sorted(overlap)}")
-    return GroupedValidationSplit(
+    return validate_grouped_validation_split(
         train_records=tuple(sorted(selected_train, key=lambda record: record.relative_path)),
         validation_records=tuple(
             sorted(selected_validation, key=lambda record: record.relative_path)
         ),
+    )
+
+
+def validate_grouped_validation_split(
+    *,
+    train_records: tuple[SensorFileRecord, ...],
+    validation_records: tuple[SensorFileRecord, ...],
+) -> GroupedValidationSplit:
+    overlap = {record.relative_path for record in train_records} & {
+        record.relative_path for record in validation_records
+    }
+    if overlap:
+        raise MoonshotDataError(f"grouped validation split leaked files: {sorted(overlap)}")
+    return GroupedValidationSplit(
+        train_records=tuple(sorted(train_records, key=lambda record: record.relative_path)),
+        validation_records=tuple(
+            sorted(validation_records, key=lambda record: record.relative_path)
+        ),
+    )
+
+
+def build_grouped_cv_fold_manifest(
+    train_records: tuple[SensorFileRecord, ...],
+    *,
+    fold_count: int = 5,
+) -> GroupedFoldManifest:
+    if fold_count <= 1:
+        raise MoonshotDataError("fold_count must be greater than one for grouped cv")
+    grouped: dict[str, list[SensorFileRecord]] = defaultdict(list)
+    for record in train_records:
+        grouped[record.class_name].append(record)
+    if not grouped:
+        raise MoonshotDataError("grouped cv requires at least one training record")
+
+    grouped_records = {
+        class_name: tuple(sorted(records, key=lambda record: record.relative_path))
+        for class_name, records in grouped.items()
+    }
+    for class_name, records in grouped_records.items():
+        if len(records) != fold_count:
+            raise MoonshotDataError(
+                f"class {class_name!r} has {len(records)} training files; "
+                f"grouped {fold_count}-fold cv requires exactly {fold_count}"
+            )
+
+    folds: list[GroupedValidationFold] = []
+    for fold_index in range(fold_count):
+        selected_train: list[SensorFileRecord] = []
+        selected_validation: list[SensorFileRecord] = []
+        for class_name in sorted(grouped_records):
+            records = grouped_records[class_name]
+            selected_validation.append(records[fold_index])
+            selected_train.extend(
+                record for record_index, record in enumerate(records) if record_index != fold_index
+            )
+        split = validate_grouped_validation_split(
+            train_records=tuple(selected_train),
+            validation_records=tuple(selected_validation),
+        )
+        folds.append(
+            GroupedValidationFold(
+                fold_index=fold_index,
+                fold_count=fold_count,
+                train_records=split.train_records,
+                validation_records=split.validation_records,
+            )
+        )
+    return GroupedFoldManifest(
+        fold_count=fold_count,
+        files_per_class=fold_count,
+        class_names=tuple(sorted(grouped_records)),
+        folds=tuple(folds),
+    )
+
+
+def grouped_cv_validation_split(
+    train_records: tuple[SensorFileRecord, ...],
+    *,
+    fold_index: int,
+    fold_count: int = 5,
+) -> GroupedValidationSplit:
+    manifest = build_grouped_cv_fold_manifest(train_records, fold_count=fold_count)
+    if fold_index < 0 or fold_index >= manifest.fold_count:
+        raise MoonshotDataError(
+            f"fold_index {fold_index} is out of range for fold_count={manifest.fold_count}"
+        )
+    fold = manifest.folds[fold_index]
+    return GroupedValidationSplit(
+        train_records=fold.train_records,
+        validation_records=fold.validation_records,
     )
 
 
@@ -106,85 +228,123 @@ def prepare_moonshot_window_splits(
     validation_files_per_class: int,
     channel_set: str = MOONSHOT_ALL12_CHANNEL_SET,
 ) -> MoonshotPreparedSplits:
-    from smelt.preprocessing.standardize import apply_window_standardizer, fit_window_standardizer
-    from smelt.preprocessing.windows import generate_split_windows
-
-    resolved_channel_set = resolve_moonshot_channel_set(channel_set)
     grouped_split = deterministic_grouped_validation_split(
         dataset.train_records,
         validation_files_per_class=validation_files_per_class,
     )
-    train_records = preprocess_moonshot_records(
-        grouped_split.train_records,
+    return prepare_moonshot_window_splits_from_records(
+        class_names=tuple(sorted(dataset.class_vocab)),
+        resolved_data_root=dataset.resolved_data_root,
+        train_records=grouped_split.train_records,
+        validation_records=grouped_split.validation_records,
+        test_records=dataset.test_records,
+        diff_period=diff_period,
+        window_size=window_size,
+        stride=stride,
+        channel_set=channel_set,
+        view_manifest_updates={
+            "split_strategy": "deterministic_grouped_holdout",
+            "validation_files_per_class": validation_files_per_class,
+        },
+    )
+
+
+def prepare_moonshot_window_splits_from_records(
+    *,
+    class_names: tuple[str, ...],
+    resolved_data_root: str,
+    train_records: tuple[SensorFileRecord, ...],
+    validation_records: tuple[SensorFileRecord, ...] = (),
+    test_records: tuple[SensorFileRecord, ...] = (),
+    diff_period: int,
+    window_size: int,
+    stride: int | None,
+    channel_set: str = MOONSHOT_ALL12_CHANNEL_SET,
+    view_manifest_updates: dict[str, Any] | None = None,
+) -> MoonshotPreparedSplits:
+    from smelt.preprocessing.standardize import apply_window_standardizer, fit_window_standardizer
+    from smelt.preprocessing.windows import generate_split_windows
+
+    resolved_channel_set = resolve_moonshot_channel_set(channel_set)
+    processed_train_records = preprocess_moonshot_records(
+        train_records,
         diff_period=diff_period,
         channel_set=resolved_channel_set,
     )
-    validation_records = preprocess_moonshot_records(
-        grouped_split.validation_records,
+    processed_validation_records = preprocess_moonshot_records(
+        validation_records,
         diff_period=diff_period,
         channel_set=resolved_channel_set,
     )
-    test_records = preprocess_moonshot_records(
-        dataset.test_records,
+    processed_test_records = preprocess_moonshot_records(
+        test_records,
         diff_period=diff_period,
         channel_set=resolved_channel_set,
     )
     train_windows = generate_split_windows(
-        train_records,
-        window_size=window_size,
-        stride=stride,
-    )
-    validation_windows = generate_split_windows(
-        validation_records,
-        window_size=window_size,
-        stride=stride,
-    )
-    test_windows = generate_split_windows(
-        test_records,
+        processed_train_records,
         window_size=window_size,
         stride=stride,
     )
     if train_windows.window_count == 0:
         raise MoonshotDataError("moonshot train split produced zero windows")
-    if validation_windows.window_count == 0:
-        raise MoonshotDataError("moonshot validation split produced zero windows")
-    if test_windows.window_count == 0:
-        raise MoonshotDataError("moonshot test split produced zero windows")
-
     standardizer = fit_window_standardizer(train_windows)
     standardized_train = apply_window_standardizer(train_windows, standardizer)
-    standardized_validation = apply_window_standardizer(validation_windows, standardizer)
-    standardized_test = apply_window_standardizer(test_windows, standardizer)
+
+    standardized_validation = None
+    if processed_validation_records:
+        validation_windows = generate_split_windows(
+            processed_validation_records,
+            window_size=window_size,
+            stride=stride,
+        )
+        if validation_windows.window_count == 0:
+            raise MoonshotDataError("moonshot validation split produced zero windows")
+        standardized_validation = apply_window_standardizer(validation_windows, standardizer)
+
+    standardized_test = None
+    if processed_test_records:
+        test_windows = generate_split_windows(
+            processed_test_records,
+            window_size=window_size,
+            stride=stride,
+        )
+        if test_windows.window_count == 0:
+            raise MoonshotDataError("moonshot test split produced zero windows")
+        standardized_test = apply_window_standardizer(test_windows, standardizer)
+
     feature_names = standardized_train.column_names
-    class_names = tuple(sorted(dataset.class_vocab))
     view_manifest = {
         "track": MOONSHOT_TRACK,
         "view_mode": f"diff_{resolved_channel_set}",
         "channel_set": resolved_channel_set,
-        "resolved_data_root": dataset.resolved_data_root,
+        "resolved_data_root": resolved_data_root,
         "differencing_period": diff_period,
         "window_size": window_size,
         "stride": standardized_train.stride,
         "retained_columns": list(feature_names),
         "feature_names": list(feature_names),
         "feature_count": len(feature_names),
-        "train_record_count": len(train_records),
-        "validation_record_count": len(validation_records),
-        "test_record_count": len(test_records),
+        "train_record_count": len(processed_train_records),
+        "validation_record_count": len(processed_validation_records),
+        "test_record_count": len(processed_test_records),
         "train_window_count": standardized_train.window_count,
-        "validation_window_count": standardized_validation.window_count,
-        "test_window_count": standardized_test.window_count,
+        "validation_window_count": (
+            standardized_validation.window_count if standardized_validation is not None else 0
+        ),
+        "test_window_count": standardized_test.window_count if standardized_test is not None else 0,
         "standardization_shape": [standardizer.sample_count, standardizer.feature_count],
-        "validation_files_per_class": validation_files_per_class,
     }
+    if view_manifest_updates:
+        view_manifest.update(view_manifest_updates)
     return MoonshotPreparedSplits(
         class_names=class_names,
         feature_names=feature_names,
         retained_columns=feature_names,
         channel_set=resolved_channel_set,
-        train_records=grouped_split.train_records,
-        validation_records=grouped_split.validation_records,
-        test_records=dataset.test_records,
+        train_records=train_records,
+        validation_records=validation_records,
+        test_records=test_records,
         standardized_train_split=standardized_train,
         standardized_validation_split=standardized_validation,
         standardized_test_split=standardized_test,

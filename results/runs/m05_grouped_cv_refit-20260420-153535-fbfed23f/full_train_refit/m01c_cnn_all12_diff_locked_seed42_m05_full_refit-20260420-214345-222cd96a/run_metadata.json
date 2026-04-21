@@ -1,0 +1,17 @@
+{
+  "device": "mps",
+  "effective_batch_size": 32,
+  "frozen_epoch_budget": 63,
+  "gradient_accumulation_steps": 1,
+  "locked_primary_aggregator": "majority_vote",
+  "member_id": "m01c_cnn_all12_diff_locked_seed42",
+  "mode": "full_train_refit_member",
+  "model_family": "cnn",
+  "official_test_evaluated": true,
+  "official_test_metrics_persisted": false,
+  "official_test_scope": "used only to build the final frozen ensemble output",
+  "parameter_count": 222834,
+  "protocol": "m05",
+  "selection_source": "cv_oof_only",
+  "track": "moonshot-enhanced-setting"
+}

@@ -1,0 +1,53 @@
+{
+  "channel_set": "all12",
+  "differencing_period": 25,
+  "feature_count": 12,
+  "feature_names": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG",
+    "Benzene",
+    "Temperature",
+    "Pressure",
+    "Humidity",
+    "Gas_Resistance",
+    "Altitude"
+  ],
+  "fold_count": 5,
+  "fold_index": 3,
+  "protocol": "m05",
+  "resolved_data_root": "/Users/jeremykalfus/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/71bcae740b885be23db5f72933a8bc55c4e18ad7/data",
+  "retained_columns": [
+    "NO2",
+    "C2H5OH",
+    "VOC",
+    "CO",
+    "Alcohol",
+    "LPG",
+    "Benzene",
+    "Temperature",
+    "Pressure",
+    "Humidity",
+    "Gas_Resistance",
+    "Altitude"
+  ],
+  "split_strategy": "grouped_5_fold_cv",
+  "standardization_shape": [
+    200800,
+    12
+  ],
+  "stride": 50,
+  "test_record_count": 0,
+  "test_window_count": 0,
+  "track": "moonshot-enhanced-setting",
+  "train_record_count": 200,
+  "train_window_count": 2008,
+  "validation_files_per_class": 1,
+  "validation_record_count": 50,
+  "validation_window_count": 504,
+  "view_mode": "diff_all12",
+  "window_size": 100
+}

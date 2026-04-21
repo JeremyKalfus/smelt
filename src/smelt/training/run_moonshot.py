@@ -20,6 +20,7 @@ from smelt.datasets import (
     build_base_class_vocab_manifest,
     load_base_sensor_dataset,
     prepare_moonshot_window_splits,
+    prepare_moonshot_window_splits_from_records,
     resolve_moonshot_channel_set,
     stack_window_labels,
     write_base_class_vocab_manifest,
@@ -123,15 +124,15 @@ class MoonshotPreparedTensors:
     train_labels: np.ndarray
     validation_windows: np.ndarray
     validation_labels: np.ndarray
-    test_windows: np.ndarray
-    test_labels: np.ndarray
+    test_windows: np.ndarray | None
+    test_labels: np.ndarray | None
     train_window_count: int
     validation_window_count: int
     test_window_count: int
     train_standardization_shape: tuple[int, int]
     standardized_train_split: Any
     standardized_validation_split: Any
-    standardized_test_split: Any
+    standardized_test_split: Any | None
     view_manifest: dict[str, Any]
 
 
@@ -297,8 +298,8 @@ def run_moonshot(
         num_workers=config.num_workers,
     )
     test_loader = build_dataloader(
-        prepared.test_windows,
-        prepared.test_labels,
+        require_split_array(prepared.test_windows, split_name="test"),
+        require_split_array(prepared.test_labels, split_name="test"),
         batch_size=config.batch_size,
         shuffle=False,
         num_workers=config.num_workers,
@@ -413,7 +414,10 @@ def run_moonshot(
         predicted_labels=test_evaluation.predicted_labels,
         topk_indices=test_evaluation.topk_indices,
         logits=test_evaluation.logits,
-        windows=prepared.standardized_test_split.windows,
+        windows=require_standardized_split(
+            prepared.standardized_test_split,
+            split_name="test",
+        ).windows,
     )
     write_window_prediction_bundle(run_dir / "predictions.npz", test_bundle)
 
@@ -962,17 +966,69 @@ def prepare_moonshot_tensors(
         validation_files_per_class=config.validation_files_per_class,
         channel_set=config.channel_set,
     )
+    return build_moonshot_prepared_tensors(prepared)
+
+
+def prepare_moonshot_tensors_from_records(
+    *,
+    class_names: tuple[str, ...],
+    resolved_data_root: str,
+    train_records: tuple[Any, ...],
+    validation_records: tuple[Any, ...] = (),
+    test_records: tuple[Any, ...] = (),
+    config: MoonshotRunConfig,
+    validation_files_per_class: int | None = None,
+    view_manifest_updates: dict[str, Any] | None = None,
+) -> MoonshotPreparedTensors:
+    manifest_updates = dict(view_manifest_updates or {})
+    if validation_records:
+        if validation_files_per_class is not None:
+            manifest_updates.setdefault(
+                "validation_files_per_class",
+                validation_files_per_class,
+            )
+    else:
+        manifest_updates.setdefault("validation_files_per_class", 0)
+    prepared = prepare_moonshot_window_splits_from_records(
+        class_names=class_names,
+        resolved_data_root=resolved_data_root,
+        train_records=train_records,
+        validation_records=validation_records,
+        test_records=test_records,
+        diff_period=config.diff_period,
+        window_size=config.window_size,
+        stride=config.stride,
+        channel_set=config.channel_set,
+        view_manifest_updates=manifest_updates,
+    )
+    return build_moonshot_prepared_tensors(prepared)
+
+
+def build_moonshot_prepared_tensors(
+    prepared: Any,
+) -> MoonshotPreparedTensors:
     train_values = stack_window_values(prepared.standardized_train_split.windows).astype(
         np.float32,
         copy=False,
     )
-    validation_values = stack_window_values(prepared.standardized_validation_split.windows).astype(
-        np.float32,
-        copy=False,
+    validation_values = (
+        stack_window_values(prepared.standardized_validation_split.windows).astype(
+            np.float32,
+            copy=False,
+        )
+        if prepared.standardized_validation_split is not None
+        else np.zeros(
+            (0, prepared.standardized_train_split.window_size, len(prepared.feature_names)),
+            dtype=np.float32,
+        )
     )
-    test_values = stack_window_values(prepared.standardized_test_split.windows).astype(
-        np.float32,
-        copy=False,
+    test_values = (
+        stack_window_values(prepared.standardized_test_split.windows).astype(
+            np.float32,
+            copy=False,
+        )
+        if prepared.standardized_test_split is not None
+        else None
     )
     return MoonshotPreparedTensors(
         class_names=prepared.class_names,
@@ -981,15 +1037,31 @@ def prepare_moonshot_tensors(
         train_windows=train_values,
         train_labels=stack_window_labels(prepared.standardized_train_split, prepared.class_names),
         validation_windows=validation_values,
-        validation_labels=stack_window_labels(
-            prepared.standardized_validation_split,
-            prepared.class_names,
+        validation_labels=(
+            stack_window_labels(
+                prepared.standardized_validation_split,
+                prepared.class_names,
+            )
+            if prepared.standardized_validation_split is not None
+            else np.zeros((0,), dtype=np.int64)
         ),
         test_windows=test_values,
-        test_labels=stack_window_labels(prepared.standardized_test_split, prepared.class_names),
+        test_labels=(
+            stack_window_labels(prepared.standardized_test_split, prepared.class_names)
+            if prepared.standardized_test_split is not None
+            else None
+        ),
         train_window_count=prepared.standardized_train_split.window_count,
-        validation_window_count=prepared.standardized_validation_split.window_count,
-        test_window_count=prepared.standardized_test_split.window_count,
+        validation_window_count=(
+            prepared.standardized_validation_split.window_count
+            if prepared.standardized_validation_split is not None
+            else 0
+        ),
+        test_window_count=(
+            prepared.standardized_test_split.window_count
+            if prepared.standardized_test_split is not None
+            else 0
+        ),
         train_standardization_shape=(
             prepared.standardizer.sample_count,
             prepared.standardizer.feature_count,
@@ -999,6 +1071,57 @@ def prepare_moonshot_tensors(
         standardized_test_split=prepared.standardized_test_split,
         view_manifest=prepared.view_manifest,
     )
+
+
+def require_standardized_split(split: Any | None, *, split_name: str) -> Any:
+    if split is None:
+        raise MoonshotRunError(f"moonshot prepared tensors do not include a {split_name} split")
+    return split
+
+
+def require_split_array(array: np.ndarray | None, *, split_name: str) -> np.ndarray:
+    if array is None:
+        raise MoonshotRunError(f"moonshot prepared tensors do not include {split_name} arrays")
+    return array
+
+
+def load_moonshot_checkpoint(
+    *,
+    model: nn.Module,
+    checkpoint_path: Path,
+) -> dict[str, Any]:
+    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    model.load_state_dict(checkpoint["model_state_dict"])
+    return checkpoint
+
+
+def evaluate_moonshot_checkpoint(
+    *,
+    model: nn.Module,
+    checkpoint_path: Path,
+    data_loader: Any,
+    windows: tuple[Any, ...],
+    class_names: tuple[str, ...],
+    category_mapping: dict[str, str],
+    device: torch.device,
+) -> tuple[dict[str, Any], Any, Any]:
+    checkpoint = load_moonshot_checkpoint(model=model, checkpoint_path=checkpoint_path)
+    evaluation = collect_evaluation_outputs(
+        model=model,
+        data_loader=data_loader,
+        device=device,
+        class_names=class_names,
+        category_mapping=category_mapping,
+    )
+    bundle = build_window_prediction_bundle(
+        class_names=evaluation.metrics.class_names,
+        true_labels=evaluation.true_labels,
+        predicted_labels=evaluation.predicted_labels,
+        topk_indices=evaluation.topk_indices,
+        logits=evaluation.logits,
+        windows=windows,
+    )
+    return checkpoint, evaluation, bundle
 
 
 def train_moonshot_classifier(

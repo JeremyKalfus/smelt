@@ -14,7 +14,13 @@ This README is the repo summary: what was reproduced, what was tried, what faile
   - use grouped file-level validation
   - lock checkpointing and file-level decisions on validation only
   - use a heterogeneous ensemble chosen on validation only
-- Current best tracked result:
+- `m05` is the defensible post-audit moonshot protocol:
+  - grouped 5-fold CV over `offline_training`
+  - CV / OOF-only search
+  - no candidate-level official-test metrics during search
+  - freeze the final bank, aggregator behavior, and epoch budgets before refit
+  - refit on full official training, then evaluate the official test at the very end
+- Current best tracked exploratory result:
   - `94.0` file-level Top-1
   - `100.0` file-level Top-5
   - `92.0` file-level macro-F1
@@ -406,7 +412,7 @@ Interpretation:
 
 ### `m04`: heterogeneous moonshot ensemble bank
 
-This is the current best tracked result.
+This is the current best tracked result, but it is not the final-definitive protocol.
 
 Model bank summary:
 
@@ -443,6 +449,31 @@ Interpretation:
 - this is the strongest result in the repo
 - diversity-aware selection beat naive averaging
 - the best ensemble was multi-family + multi-seed
+- `m04` should still be treated as exploratory because candidate-level official-test
+  metrics existed during search/output
+
+### `m05`: post-audit grouped-cv protocol
+
+`m05` is the defensible moonshot protocol after the leakage/selection audit.
+
+Protocol:
+
+- keep the strongest feature setting: `all12`, diff-only, `g=25`, `window_size=100`, `stride=50`
+- keep the strongest current bank scope unless a code-level issue forces a change
+- build explicit grouped 5-fold CV over the official training split
+- use CV / OOF file-level evidence only for:
+  - model-bank ranking
+  - locked aggregator choice per member
+  - ensemble member selection
+  - ensemble method selection
+  - frozen epoch-budget selection for full-train refit
+- do not compute candidate-level official-test metrics during search
+- refit only the frozen selected members on the full official training split
+- evaluate the official test only after finalization
+
+Interpretation:
+- this is the protocol to use for final claims after the audit
+- if `m05` lands below `m04`, prefer the lower `m05` number rather than defending the older score
 
 ## What actually mattered
 
@@ -557,6 +588,12 @@ python -m smelt.training.run_moonshot \
 python -m smelt.training.run_m04_ensemble ...
 ```
 
+- post-audit grouped-cv protocol:
+
+```bash
+python -m smelt.training.run_m05
+```
+
 - verification-only export pass:
 
 ```bash
@@ -604,7 +641,10 @@ If you want the verification and paper-ready exports first:
 
 If you care about benchmark-faithful comparison, use the `exact-upstream` track.
 
-If you care about the strongest detector in this repo, the current main result is the locked `m04` moonshot heterogeneous ensemble:
+If you care about final-definitive moonshot claims, use `m05`.
+
+If you care about the strongest tracked exploratory number in this repo, the current `m04`
+moonshot heterogeneous ensemble is:
 
 - `94.0` file-level Top-1
 - `100.0` file-level Top-5

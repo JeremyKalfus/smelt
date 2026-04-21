@@ -1,0 +1,27 @@
+{
+  "duplicate_audit_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_duplicate_audit.json",
+  "ensemble_selection_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_cv_ensemble_selection.json",
+  "final_test_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_final_test.json",
+  "fold_manifest_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_fold_manifest.json",
+  "mode": "grouped_cv_search_then_full_train_refit",
+  "model_bank_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_cv_model_bank.json",
+  "protocol": "m05",
+  "refit_plan_path": "/Users/jeremykalfus/CodingProjects/smelt/results/runs/m05_grouped_cv_refit-20260420-153535-fbfed23f/m05_refit_plan.json",
+  "scorecard_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_scorecard.json",
+  "search_summary_path": "/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_cv_search_summary.json",
+  "selected_member_ids": [
+    "m01c_cnn_all12_diff_locked_seed42",
+    "m01c_cnn_all12_diff_locked_seed7",
+    "m04_deep_temporal_resnet_all12_diff_seed7",
+    "m04_hinception_all12_diff_seed29"
+  ],
+  "selected_method": "diversity_greedy_probabilities",
+  "selected_weights": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+  ],
+  "selection_source": "cv_oof_only",
+  "track": "moonshot-enhanced-setting"
+}

@@ -1,0 +1,17 @@
+bank_config_paths:
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m01c_cnn_all12_diff_locked_seed13.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m01c_cnn_all12_diff_locked_seed42.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m01c_cnn_all12_diff_locked_seed7.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m02_deep_temporal_resnet_all12_diff_locked.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_cnn_all12_diff_locked_seed101.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_cnn_all12_diff_locked_seed202.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_deep_temporal_resnet_all12_diff_seed7.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_hinception_all12_diff_seed17.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_hinception_all12_diff_seed29.yaml
+- /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_patch_transformer_all12_diff_seed19.yaml
+channel_set: all12
+diff_period: 25
+fold_count: 5
+protocol: m05
+stride: 50
+window_size: 100

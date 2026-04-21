@@ -426,6 +426,63 @@ def build_file_score_bundle(
     )
 
 
+def write_file_score_bundle(
+    output_path: Path,
+    bundle: FileScoreBundle,
+) -> None:
+    np.savez_compressed(
+        output_path,
+        aggregator=np.asarray(bundle.aggregator),
+        class_names=np.asarray(bundle.class_names),
+        scores=np.asarray(bundle.scores, dtype=np.float64),
+        true_labels=np.asarray(bundle.true_labels, dtype=np.int64),
+        predicted_labels=np.asarray(bundle.predicted_labels, dtype=np.int64),
+        topk_indices=np.asarray(bundle.topk_indices, dtype=np.int64),
+        split_names=np.asarray(bundle.split_names),
+        relative_paths=np.asarray(bundle.relative_paths),
+        absolute_paths=np.asarray(bundle.absolute_paths),
+        num_windows=np.asarray(bundle.num_windows, dtype=np.int64),
+    )
+
+
+def load_file_score_bundle(
+    input_path: Path,
+) -> FileScoreBundle:
+    try:
+        payload = np.load(input_path, allow_pickle=False)
+    except OSError as exc:
+        raise FileLevelAggregationError(f"unable to read file score bundle: {input_path}") from exc
+    required_fields = {
+        "aggregator",
+        "class_names",
+        "scores",
+        "true_labels",
+        "predicted_labels",
+        "topk_indices",
+        "split_names",
+        "relative_paths",
+        "absolute_paths",
+        "num_windows",
+    }
+    missing_fields = sorted(required_fields - set(payload.files))
+    if missing_fields:
+        raise FileLevelAggregationError(
+            f"file score bundle is missing required fields: {missing_fields}"
+        )
+    return FileScoreBundle(
+        aggregator=str(payload["aggregator"].tolist()),
+        class_names=tuple(str(value) for value in payload["class_names"].tolist()),
+        scores=np.asarray(payload["scores"], dtype=np.float64),
+        true_labels=np.asarray(payload["true_labels"], dtype=np.int64),
+        predicted_labels=np.asarray(payload["predicted_labels"], dtype=np.int64),
+        topk_indices=np.asarray(payload["topk_indices"], dtype=np.int64),
+        split_names=tuple(str(value) for value in payload["split_names"].tolist()),
+        relative_paths=tuple(str(value) for value in payload["relative_paths"].tolist()),
+        absolute_paths=tuple(str(value) for value in payload["absolute_paths"].tolist()),
+        num_windows=np.asarray(payload["num_windows"], dtype=np.int64),
+    )
+
+
 def evaluate_file_level_aggregation(
     bundle: WindowPredictionBundle,
     *,

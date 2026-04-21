@@ -1,0 +1,195 @@
+{
+  "candidates": [
+    {
+      "avg_pairwise_agreement": 0.7710222222222224,
+      "avg_pairwise_correlation": 0.8404889941375336,
+      "cv_file_metrics": {
+        "acc@1": 88.4,
+        "acc@5": 99.2,
+        "f1_macro": 87.55688755688755,
+        "precision_macro": 89.11904761904762,
+        "recall_macro": 88.39999999999999
+      },
+      "member_ids": [
+        "m01c_cnn_all12_diff_locked_seed13",
+        "m01c_cnn_all12_diff_locked_seed42",
+        "m01c_cnn_all12_diff_locked_seed7",
+        "m02_deep_temporal_resnet_all12_diff_locked",
+        "m04_cnn_all12_diff_locked_seed101",
+        "m04_cnn_all12_diff_locked_seed202",
+        "m04_deep_temporal_resnet_all12_diff_seed7",
+        "m04_hinception_all12_diff_seed17",
+        "m04_hinception_all12_diff_seed29",
+        "m04_patch_transformer_all12_diff_seed19"
+      ],
+      "method_name": "mean_probabilities_all",
+      "weights": [
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.7710222222222224,
+      "avg_pairwise_correlation": 0.8404889941375336,
+      "cv_file_metrics": {
+        "acc@1": 88.4,
+        "acc@5": 98.8,
+        "f1_macro": 87.78556998556999,
+        "precision_macro": 88.41904761904762,
+        "recall_macro": 88.39999999999999
+      },
+      "member_ids": [
+        "m01c_cnn_all12_diff_locked_seed13",
+        "m01c_cnn_all12_diff_locked_seed42",
+        "m01c_cnn_all12_diff_locked_seed7",
+        "m02_deep_temporal_resnet_all12_diff_locked",
+        "m04_cnn_all12_diff_locked_seed101",
+        "m04_cnn_all12_diff_locked_seed202",
+        "m04_deep_temporal_resnet_all12_diff_seed7",
+        "m04_hinception_all12_diff_seed17",
+        "m04_hinception_all12_diff_seed29",
+        "m04_patch_transformer_all12_diff_seed19"
+      ],
+      "method_name": "mean_logits_all",
+      "weights": [
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.7710222222222224,
+      "avg_pairwise_correlation": 0.8404889941375336,
+      "cv_file_metrics": {
+        "acc@1": 88.4,
+        "acc@5": 99.2,
+        "f1_macro": 87.34845154845154,
+        "precision_macro": 89.40714285714287,
+        "recall_macro": 88.4
+      },
+      "member_ids": [
+        "m01c_cnn_all12_diff_locked_seed13",
+        "m01c_cnn_all12_diff_locked_seed42",
+        "m01c_cnn_all12_diff_locked_seed7",
+        "m02_deep_temporal_resnet_all12_diff_locked",
+        "m04_cnn_all12_diff_locked_seed101",
+        "m04_cnn_all12_diff_locked_seed202",
+        "m04_deep_temporal_resnet_all12_diff_seed7",
+        "m04_hinception_all12_diff_seed17",
+        "m04_hinception_all12_diff_seed29",
+        "m04_patch_transformer_all12_diff_seed19"
+      ],
+      "method_name": "weighted_probabilities_all",
+      "weights": [
+        0.10638297872340424,
+        0.10539336961900049,
+        0.10836219693221176,
+        0.09995051954477982,
+        0.10786739238000989,
+        0.10588817417120236,
+        0.09945571499257792,
+        0.08164275111331024,
+        0.07867392380009895,
+        0.10638297872340424
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.7193333333333335,
+      "avg_pairwise_correlation": 0.7961649137665211,
+      "cv_file_metrics": {
+        "acc@1": 88.8,
+        "acc@5": 98.4,
+        "f1_macro": 87.98776778776778,
+        "precision_macro": 89.31904761904762,
+        "recall_macro": 88.8
+      },
+      "member_ids": [
+        "m01c_cnn_all12_diff_locked_seed42",
+        "m01c_cnn_all12_diff_locked_seed7",
+        "m04_deep_temporal_resnet_all12_diff_seed7",
+        "m04_hinception_all12_diff_seed29"
+      ],
+      "method_name": "greedy_forward_probabilities",
+      "weights": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.7193333333333335,
+      "avg_pairwise_correlation": 0.7961649137665211,
+      "cv_file_metrics": {
+        "acc@1": 88.8,
+        "acc@5": 98.4,
+        "f1_macro": 87.98776778776778,
+        "precision_macro": 89.31904761904762,
+        "recall_macro": 88.8
+      },
+      "member_ids": [
+        "m01c_cnn_all12_diff_locked_seed42",
+        "m01c_cnn_all12_diff_locked_seed7",
+        "m04_deep_temporal_resnet_all12_diff_seed7",
+        "m04_hinception_all12_diff_seed29"
+      ],
+      "method_name": "diversity_greedy_probabilities",
+      "weights": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    }
+  ],
+  "selected_avg_pairwise_agreement": 0.7193333333333335,
+  "selected_avg_pairwise_correlation": 0.7961649137665211,
+  "selected_cv_file_metrics": {
+    "acc@1": 88.8,
+    "acc@5": 98.4,
+    "f1_macro": 87.98776778776778,
+    "precision_macro": 89.31904761904762,
+    "recall_macro": 88.8
+  },
+  "selected_member_ids": [
+    "m01c_cnn_all12_diff_locked_seed42",
+    "m01c_cnn_all12_diff_locked_seed7",
+    "m04_deep_temporal_resnet_all12_diff_seed7",
+    "m04_hinception_all12_diff_seed29"
+  ],
+  "selected_method": "diversity_greedy_probabilities",
+  "selected_weights": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+  ],
+  "selection_rule": {
+    "final_tie_break_order": [
+      "diversity_greedy_probabilities",
+      "greedy_forward_probabilities",
+      "weighted_probabilities_all",
+      "mean_probabilities_all",
+      "mean_logits_all"
+    ],
+    "primary": "cv_oof_file_acc@1",
+    "secondary_tie_break": "lower_average_pairwise_agreement_then_lower_probability_correlation",
+    "tie_break": "cv_oof_file_macro_f1"
+  },
+  "selection_source": "cv_oof_only"
+}

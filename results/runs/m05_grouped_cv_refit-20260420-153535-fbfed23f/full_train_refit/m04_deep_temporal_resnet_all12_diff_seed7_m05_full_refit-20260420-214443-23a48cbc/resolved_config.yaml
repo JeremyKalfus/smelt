@@ -1,0 +1,57 @@
+batch_size: 16
+candidate_file_aggregators:
+- mean_logits
+- mean_probabilities
+- majority_vote
+category_map_path: configs/exact-upstream/category_map.json
+channel_set: all12
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+config_path: /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_deep_temporal_resnet_all12_diff_seed7.yaml
+data_root: /Users/jeremykalfus/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/71bcae740b885be23db5f72933a8bc55c4e18ad7/data
+device: auto
+diff_period: 25
+epochs: 140
+exact_upstream_regression_path: artifacts/methods/m03_exact_upstream_regression_smoke.json
+experiment_name: m04_deep_temporal_resnet_all12_diff_seed7
+frozen_aggregator: mean_logits
+frozen_epoch_budget: 61
+grad_clip: 1.0
+gradient_accumulation_steps: 4
+label_smoothing: 0.05
+locked_protocol: true
+lr: 0.002
+model:
+  groupnorm_groups: 8
+  head_dropout: 0.2
+  kernel_size: 5
+  normalization: groupnorm
+  se_reduction: 16
+  stage_depths:
+  - 3
+  - 4
+  - 6
+  - 3
+  stage_widths:
+  - 64
+  - 128
+  - 256
+  - 384
+  stem_width: 64
+  stochastic_depth_probability: 0.05
+model_name: deep_temporal_resnet
+num_workers: 0
+output_root: results/runs
+primary_file_aggregator: ''
+protocol: m05
+scheduler_eta_min: 5.0e-05
+scheduler_name: cosine
+scheduler_t_max: 140
+seed: 7
+shuffle_train_labels: false
+split_strategy: full_train_refit
+stride: 50
+track: moonshot-enhanced-setting
+validation_file_aggregator: ''
+validation_files_per_class: 1
+weight_decay: 0.0005
+window_size: 100

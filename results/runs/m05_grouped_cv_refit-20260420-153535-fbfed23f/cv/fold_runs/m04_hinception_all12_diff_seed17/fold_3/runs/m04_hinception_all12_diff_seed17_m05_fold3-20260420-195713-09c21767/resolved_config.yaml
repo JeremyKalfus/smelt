@@ -1,0 +1,48 @@
+batch_size: 16
+candidate_file_aggregators:
+- mean_logits
+- mean_probabilities
+- majority_vote
+category_map_path: configs/exact-upstream/category_map.json
+channel_set: all12
+class_vocab_manifest_path: artifacts/manifests/base_class_vocab.json
+config_path: /Users/jeremykalfus/CodingProjects/smelt/configs/moonshot-enhanced/m04_hinception_all12_diff_seed17.yaml
+data_root: /Users/jeremykalfus/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/71bcae740b885be23db5f72933a8bc55c4e18ad7/data
+device: auto
+diff_period: 25
+epochs: 60
+exact_upstream_regression_path: artifacts/methods/m03_exact_upstream_regression_smoke.json
+experiment_name: m04_hinception_all12_diff_seed17
+fold_count: 5
+fold_index: 3
+grad_clip: 1.0
+gradient_accumulation_steps: 4
+label_smoothing: 0.05
+locked_protocol: true
+lr: 0.002
+model:
+  activation_name: gelu
+  bottleneck_channels: 128
+  branch_channels: 128
+  dropout: 0.2
+  head_hidden_dim: 384
+  num_blocks: 8
+  residual_interval: 3
+  stem_channels: 192
+model_name: hinception
+num_workers: 0
+output_root: results/runs
+primary_file_aggregator: ''
+protocol: m05
+scheduler_eta_min: 5.0e-05
+scheduler_name: cosine
+scheduler_t_max: 60
+seed: 17
+shuffle_train_labels: false
+stride: 50
+test_evaluation_enabled: false
+track: moonshot-enhanced-setting
+validation_file_aggregator: ''
+validation_files_per_class: 1
+weight_decay: 0.0005
+window_size: 100
