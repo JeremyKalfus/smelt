@@ -13,3 +13,9 @@ data/
 artifacts/
 checkpoints/
 *.egg-info/
+
+# sensitive outreach artifacts
+/outreach_*.csv
+/outreach_*.json
+/docs/research-extension/outreach*_personalized.md
+/docs/research-extension/paper_outreach_packet.md
