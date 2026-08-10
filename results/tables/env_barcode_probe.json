@@ -1,0 +1,50 @@
+{
+  "chance_accuracy": 2.0,
+  "method": "nearest-centroid, train files only, scored on official test files",
+  "pipeline_diff": "per-file stats after first-row subtraction and g=25 differencing",
+  "raw_absolute": "per-file mean+std of raw channel levels (no preprocessing)",
+  "rows": [
+    {
+      "channel_count": "1",
+      "group": "Pressure",
+      "pipeline_diff_file_acc@1": "14.0",
+      "raw_absolute_file_acc@1": "8.0",
+      "suppression_factor": "0.6x"
+    },
+    {
+      "channel_count": "1",
+      "group": "Altitude",
+      "pipeline_diff_file_acc@1": "14.0",
+      "raw_absolute_file_acc@1": "12.0",
+      "suppression_factor": "0.9x"
+    },
+    {
+      "channel_count": "1",
+      "group": "Humidity",
+      "pipeline_diff_file_acc@1": "26.0",
+      "raw_absolute_file_acc@1": "24.0",
+      "suppression_factor": "0.9x"
+    },
+    {
+      "channel_count": "1",
+      "group": "Temperature",
+      "pipeline_diff_file_acc@1": "4.0",
+      "raw_absolute_file_acc@1": "18.0",
+      "suppression_factor": "4.5x"
+    },
+    {
+      "channel_count": "4",
+      "group": "ENV4",
+      "pipeline_diff_file_acc@1": "22.0",
+      "raw_absolute_file_acc@1": "32.0",
+      "suppression_factor": "1.5x"
+    },
+    {
+      "channel_count": "5",
+      "group": "ENV4+GasResistance",
+      "pipeline_diff_file_acc@1": "32.0",
+      "raw_absolute_file_acc@1": "38.0",
+      "suppression_factor": "1.2x"
+    }
+  ]
+}

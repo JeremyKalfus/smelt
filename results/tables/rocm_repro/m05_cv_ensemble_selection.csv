@@ -1,0 +1,2 @@
+avg_pairwise_agreement,avg_pairwise_correlation,cv_file_acc@1,cv_file_acc@5,cv_file_macro_f1,selected_member_ids,selected_method,selected_weights
+0.858,0.8884362938085397,87.2,98.4,86.47496947496947,"[""m01c_cnn_all12_diff_locked_seed13"", ""m01c_cnn_all12_diff_locked_seed7"", ""m02_deep_temporal_resnet_all12_diff_locked"", ""m04_cnn_all12_diff_locked_seed202"", ""m04_patch_transformer_all12_diff_seed19""]",diversity_greedy_probabilities,"[0.2, 0.2, 0.2, 0.2, 0.2]"

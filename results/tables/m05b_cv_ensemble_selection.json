@@ -1,0 +1,203 @@
+{
+  "candidates": [
+    {
+      "avg_pairwise_agreement": 0.6621333333333334,
+      "avg_pairwise_correlation": 0.7897039892738761,
+      "cv_file_metrics": {
+        "acc@1": 76.8,
+        "acc@5": 97.2,
+        "f1_macro": 76.1701695964854,
+        "precision_macro": 80.91349206349206,
+        "recall_macro": 76.80000000000001
+      },
+      "member_ids": [
+        "m05b_cnn_benchmark6_diff_locked_seed101",
+        "m05b_cnn_benchmark6_diff_locked_seed13",
+        "m05b_cnn_benchmark6_diff_locked_seed202",
+        "m05b_cnn_benchmark6_diff_locked_seed42",
+        "m05b_cnn_benchmark6_diff_locked_seed7",
+        "m05b_deep_temporal_resnet_benchmark6_diff_locked",
+        "m05b_deep_temporal_resnet_benchmark6_diff_seed7",
+        "m05b_hinception_benchmark6_diff_seed17",
+        "m05b_hinception_benchmark6_diff_seed29",
+        "m05b_patch_transformer_benchmark6_diff_seed19"
+      ],
+      "method_name": "mean_probabilities_all",
+      "weights": [
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.6621333333333334,
+      "avg_pairwise_correlation": 0.7897039892738761,
+      "cv_file_metrics": {
+        "acc@1": 76.8,
+        "acc@5": 97.6,
+        "f1_macro": 76.23038073038073,
+        "precision_macro": 79.88015873015873,
+        "recall_macro": 76.8
+      },
+      "member_ids": [
+        "m05b_cnn_benchmark6_diff_locked_seed101",
+        "m05b_cnn_benchmark6_diff_locked_seed13",
+        "m05b_cnn_benchmark6_diff_locked_seed202",
+        "m05b_cnn_benchmark6_diff_locked_seed42",
+        "m05b_cnn_benchmark6_diff_locked_seed7",
+        "m05b_deep_temporal_resnet_benchmark6_diff_locked",
+        "m05b_deep_temporal_resnet_benchmark6_diff_seed7",
+        "m05b_hinception_benchmark6_diff_seed17",
+        "m05b_hinception_benchmark6_diff_seed29",
+        "m05b_patch_transformer_benchmark6_diff_seed19"
+      ],
+      "method_name": "mean_logits_all",
+      "weights": [
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.6621333333333334,
+      "avg_pairwise_correlation": 0.7897039892738761,
+      "cv_file_metrics": {
+        "acc@1": 77.2,
+        "acc@5": 97.2,
+        "f1_macro": 76.57421000052581,
+        "precision_macro": 81.2468253968254,
+        "recall_macro": 77.2
+      },
+      "member_ids": [
+        "m05b_cnn_benchmark6_diff_locked_seed101",
+        "m05b_cnn_benchmark6_diff_locked_seed13",
+        "m05b_cnn_benchmark6_diff_locked_seed202",
+        "m05b_cnn_benchmark6_diff_locked_seed42",
+        "m05b_cnn_benchmark6_diff_locked_seed7",
+        "m05b_deep_temporal_resnet_benchmark6_diff_locked",
+        "m05b_deep_temporal_resnet_benchmark6_diff_seed7",
+        "m05b_hinception_benchmark6_diff_seed17",
+        "m05b_hinception_benchmark6_diff_seed29",
+        "m05b_patch_transformer_benchmark6_diff_seed19"
+      ],
+      "method_name": "weighted_probabilities_all",
+      "weights": [
+        0.10587550901687026,
+        0.10587550901687026,
+        0.10762070971495055,
+        0.10762070971495055,
+        0.10471204188481675,
+        0.09773123909249563,
+        0.09598603839441536,
+        0.0820244328097731,
+        0.08551483420593367,
+        0.10703897614892378
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.7160000000000001,
+      "avg_pairwise_correlation": 0.8347430998202577,
+      "cv_file_metrics": {
+        "acc@1": 75.6,
+        "acc@5": 96.8,
+        "f1_macro": 75.51933154564733,
+        "precision_macro": 80.43650793650792,
+        "recall_macro": 75.6
+      },
+      "member_ids": [
+        "m05b_cnn_benchmark6_diff_locked_seed202",
+        "m05b_cnn_benchmark6_diff_locked_seed42",
+        "m05b_deep_temporal_resnet_benchmark6_diff_seed7"
+      ],
+      "method_name": "greedy_forward_probabilities",
+      "weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ]
+    },
+    {
+      "avg_pairwise_agreement": 0.7160000000000001,
+      "avg_pairwise_correlation": 0.8347430998202577,
+      "cv_file_metrics": {
+        "acc@1": 75.6,
+        "acc@5": 96.8,
+        "f1_macro": 75.51933154564733,
+        "precision_macro": 80.43650793650792,
+        "recall_macro": 75.6
+      },
+      "member_ids": [
+        "m05b_cnn_benchmark6_diff_locked_seed202",
+        "m05b_cnn_benchmark6_diff_locked_seed42",
+        "m05b_deep_temporal_resnet_benchmark6_diff_seed7"
+      ],
+      "method_name": "diversity_greedy_probabilities",
+      "weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ]
+    }
+  ],
+  "selected_avg_pairwise_agreement": 0.6621333333333334,
+  "selected_avg_pairwise_correlation": 0.7897039892738761,
+  "selected_cv_file_metrics": {
+    "acc@1": 77.2,
+    "acc@5": 97.2,
+    "f1_macro": 76.57421000052581,
+    "precision_macro": 81.2468253968254,
+    "recall_macro": 77.2
+  },
+  "selected_member_ids": [
+    "m05b_cnn_benchmark6_diff_locked_seed101",
+    "m05b_cnn_benchmark6_diff_locked_seed13",
+    "m05b_cnn_benchmark6_diff_locked_seed202",
+    "m05b_cnn_benchmark6_diff_locked_seed42",
+    "m05b_cnn_benchmark6_diff_locked_seed7",
+    "m05b_deep_temporal_resnet_benchmark6_diff_locked",
+    "m05b_deep_temporal_resnet_benchmark6_diff_seed7",
+    "m05b_hinception_benchmark6_diff_seed17",
+    "m05b_hinception_benchmark6_diff_seed29",
+    "m05b_patch_transformer_benchmark6_diff_seed19"
+  ],
+  "selected_method": "weighted_probabilities_all",
+  "selected_weights": [
+    0.10587550901687026,
+    0.10587550901687026,
+    0.10762070971495055,
+    0.10762070971495055,
+    0.10471204188481675,
+    0.09773123909249563,
+    0.09598603839441536,
+    0.0820244328097731,
+    0.08551483420593367,
+    0.10703897614892378
+  ],
+  "selection_rule": {
+    "final_tie_break_order": [
+      "diversity_greedy_probabilities",
+      "greedy_forward_probabilities",
+      "weighted_probabilities_all",
+      "mean_probabilities_all",
+      "mean_logits_all"
+    ],
+    "primary": "cv_oof_file_acc@1",
+    "secondary_tie_break": "lower_average_pairwise_agreement_then_lower_probability_correlation",
+    "tie_break": "cv_oof_file_macro_f1"
+  },
+  "selection_source": "cv_oof_only"
+}

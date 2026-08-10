@@ -1,0 +1,24 @@
+correct,online_split,predicted_class,relative_path,top5,true_class
+0,online_nuts,hazelnut,online_nuts/almond/almond.77e42e4a9108.csv,"[""hazelnut"", ""chervil"", ""pecans"", ""brazil_nut"", ""chives""]",almond
+0,online_nuts,hazelnut,online_nuts/brazil_nut/brazil_nut.5111ae51c14c.csv,"[""hazelnut"", ""chervil"", ""brazil_nut"", ""peanuts"", ""pili_nut""]",brazil_nut
+0,online_nuts,chervil,online_nuts/cashew/cashew.5731f8c867cb.csv,"[""chervil"", ""hazelnut"", ""chives"", ""garlic"", ""brazil_nut""]",cashew
+0,online_nuts,potato,online_nuts/chestnuts/chestnuts.c2071cb6159f.csv,"[""potato"", ""brussel_sprouts"", ""asparagus"", ""broccoli"", ""garlic""]",chestnuts
+0,online_nuts,chervil,online_nuts/hazelnut/hazelnuts.0841fca6a4c3.csv,"[""chervil"", ""hazelnut"", ""garlic"", ""cinnamon"", ""chives""]",hazelnut
+0,online_nuts,hazelnut,online_nuts/peanuts/peanuts.509208df9adf.csv,"[""hazelnut"", ""chervil"", ""brazil_nut"", ""garlic"", ""pecans""]",peanuts
+1,online_nuts,pecans,online_nuts/pecans/pecan.6425f3026995.csv,"[""pecans"", ""garlic"", ""chives"", ""chamomile"", ""hazelnut""]",pecans
+0,online_nuts,brazil_nut,online_nuts/pili_nut/pili_nut.1d75112865ca.csv,"[""brazil_nut"", ""walnuts"", ""peanuts"", ""hazelnut"", ""chamomile""]",pili_nut
+0,online_nuts,garlic,online_nuts/pistachios/pistachios.38380d1ef2fd.csv,"[""garlic"", ""chives"", ""asparagus"", ""brazil_nut"", ""hazelnut""]",pistachios
+0,online_nuts,chervil,online_nuts/walnuts/walnuts.9257e9f6c580.csv,"[""chervil"", ""hazelnut"", ""chives"", ""garlic"", ""pecans""]",walnuts
+0,online_spices,cumin,online_spices/allspice/allspice.74203bd4beee.csv,"[""cumin"", ""allspice"", ""cabbage"", ""pili_nut"", ""walnuts""]",allspice
+1,online_spices,allspice,online_spices/allspice/allspice.83c628384a4c.csv,"[""allspice"", ""cumin"", ""nutmeg"", ""cinnamon"", ""lemon""]",allspice
+1,online_spices,allspice,online_spices/allspice/allspice.ba992e339a21.csv,"[""allspice"", ""cumin"", ""angelica"", ""cloves"", ""walnuts""]",allspice
+1,online_spices,cinnamon,online_spices/cinnamon/cinnamon.bd6f454f713d.csv,"[""cinnamon"", ""coriander"", ""mugwort"", ""allspice"", ""nutmeg""]",cinnamon
+1,online_spices,cloves,online_spices/cloves/cloves.1b9dd5b1eab8.csv,"[""cloves"", ""cinnamon"", ""coriander"", ""cabbage"", ""mugwort""]",cloves
+0,online_spices,cumin,online_spices/coriander/coriander.4dae648a8457.csv,"[""cumin"", ""allspice"", ""coriander"", ""cinnamon"", ""walnuts""]",coriander
+0,online_spices,angelica,online_spices/coriander/coriander.5dd6a697a651.csv,"[""angelica"", ""coriander"", ""cinnamon"", ""cumin"", ""garlic""]",coriander
+1,online_spices,cumin,online_spices/cumin/cumin.24c868eadb47.csv,"[""cumin"", ""nutmeg"", ""allspice"", ""ginger"", ""lemon""]",cumin
+1,online_spices,nutmeg,online_spices/nutmeg/nutmeg.66ddb6a76271.csv,"[""nutmeg"", ""coriander"", ""cloves"", ""cinnamon"", ""cashew""]",nutmeg
+0,online_spices,dill,online_spices/nutmeg/nutmeg.bdedca695511.csv,"[""dill"", ""peanuts"", ""nutmeg"", ""chives"", ""cashew""]",nutmeg
+0,online_spices,walnuts,online_spices/saffron/saffron.3c043b7157aa.csv,"[""walnuts"", ""peanuts"", ""chamomile"", ""pecans"", ""chervil""]",saffron
+0,online_spices,angelica,online_spices/saffron/saffron.ba4e4c28d505.csv,"[""angelica"", ""pili_nut"", ""chervil"", ""dill"", ""chives""]",saffron
+0,online_spices,saffron,online_spices/star_anise/star_anise.4f30f6acc003.csv,"[""saffron"", ""mugwort"", ""mustard"", ""cashew"", ""almond""]",star_anise

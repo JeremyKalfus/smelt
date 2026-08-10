@@ -1,0 +1,3 @@
+channel_count,channel_set,file_acc@1,file_acc@1_ci_lower,file_acc@1_ci_upper,file_acc@5,file_macro_f1,n_files,protocol_id
+6,benchmark6,78.00,66.00,88.00,94.00,73.47,50,m05b
+reference,reference,66.00,52.00,78.00,94.00,59.90,50,exact_upstream_cnn_file_level

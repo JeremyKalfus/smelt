@@ -1,0 +1,34 @@
+{
+  "classification": "50-way over the full base vocabulary",
+  "forward_filled_cells": 43,
+  "protocol_id": "m05b",
+  "rows": [
+    {
+      "file_acc@1": "30.43",
+      "file_acc@5": "56.52",
+      "file_macro_f1": "9.60",
+      "n_files": "23",
+      "protocol_id": "m05b",
+      "scope": "all_online"
+    },
+    {
+      "file_acc@1": "10.00",
+      "file_acc@5": "",
+      "file_macro_f1": "",
+      "n_files": "10",
+      "protocol_id": "m05b",
+      "scope": "online_nuts"
+    },
+    {
+      "file_acc@1": "46.15",
+      "file_acc@5": "",
+      "file_macro_f1": "",
+      "n_files": "13",
+      "protocol_id": "m05b",
+      "scope": "online_spices"
+    }
+  ],
+  "selected_method": "weighted_probabilities_all",
+  "selection_contamination": "none: members, aggregators, method and weights frozen before any online file was read",
+  "torch_version": "2.9.1+rocmsdk20260116"
+}

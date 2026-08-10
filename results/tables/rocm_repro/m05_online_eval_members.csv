@@ -1,0 +1,6 @@
+aggregator,member_id,online_file_acc@1,online_file_acc@5,online_file_macro_f1
+majority_vote,m01c_cnn_all12_diff_locked_seed13,30.434782608695656,60.86956521739131,9.047619047619047
+mean_logits,m01c_cnn_all12_diff_locked_seed7,13.043478260869565,56.52173913043478,4.0
+mean_logits,m02_deep_temporal_resnet_all12_diff_locked,30.434782608695656,60.86956521739131,9.0
+mean_logits,m04_cnn_all12_diff_locked_seed202,30.434782608695656,52.17391304347826,9.933333333333334
+mean_logits,m04_patch_transformer_all12_diff_seed19,26.08695652173913,47.82608695652174,5.6

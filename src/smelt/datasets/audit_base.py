@@ -201,7 +201,7 @@ def read_csv_metadata(
         raise AuditError(f"unable to parse csv file {csv_path}: {exc}") from exc
 
     return FileMetadata(
-        relative_path=str(csv_path.relative_to(data_root)),
+        relative_path=csv_path.relative_to(data_root).as_posix(),
         split=split_name,
         class_name=class_name,
         row_count=row_count,

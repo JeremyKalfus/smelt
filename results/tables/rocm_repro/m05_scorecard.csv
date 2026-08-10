@@ -1,0 +1,2 @@
+file_acc@1,file_macro_f1,official_test_hygiene,protocol_id,selection_protocol
+86.0,82.33333333333333,no candidate-level official-test metrics before finalization,m05,"grouped 5-fold cv/oof search, frozen aggregator + epoch budget, single final test"

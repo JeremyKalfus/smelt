@@ -1,0 +1,153 @@
+{
+  "chance_accuracy": 2.0,
+  "diff_period": 25,
+  "method": "nearest-centroid on per-file summary stats of the g=25 differenced signal",
+  "rows": [
+    {
+      "benchmark_retained": "false",
+      "channel_count": "12",
+      "file_acc@1": "72.0",
+      "group": "ALL12",
+      "is_single_channel": "false",
+      "vs_chance": "36.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "7",
+      "file_acc@1": "70.0",
+      "group": "BENCHMARK6+GasResistance",
+      "is_single_channel": "false",
+      "vs_chance": "35.0x"
+    },
+    {
+      "benchmark_retained": "true",
+      "channel_count": "6",
+      "file_acc@1": "54.0",
+      "group": "BENCHMARK6",
+      "is_single_channel": "false",
+      "vs_chance": "27.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "6",
+      "file_acc@1": "36.0",
+      "group": "DROPPED6",
+      "is_single_channel": "false",
+      "vs_chance": "18.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "1",
+      "file_acc@1": "30.0",
+      "group": "Gas_Resistance",
+      "is_single_channel": "true",
+      "vs_chance": "15.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "5",
+      "file_acc@1": "28.0",
+      "group": "DROPPED6_minus_GasResistance",
+      "is_single_channel": "false",
+      "vs_chance": "14.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "4",
+      "file_acc@1": "26.0",
+      "group": "ENVIRONMENTAL4",
+      "is_single_channel": "false",
+      "vs_chance": "13.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "1",
+      "file_acc@1": "24.0",
+      "group": "Humidity",
+      "is_single_channel": "true",
+      "vs_chance": "12.0x"
+    },
+    {
+      "benchmark_retained": "true",
+      "channel_count": "1",
+      "file_acc@1": "22.0",
+      "group": "NO2",
+      "is_single_channel": "true",
+      "vs_chance": "11.0x"
+    },
+    {
+      "benchmark_retained": "true",
+      "channel_count": "1",
+      "file_acc@1": "16.0",
+      "group": "VOC",
+      "is_single_channel": "true",
+      "vs_chance": "8.0x"
+    },
+    {
+      "benchmark_retained": "true",
+      "channel_count": "1",
+      "file_acc@1": "16.0",
+      "group": "CO",
+      "is_single_channel": "true",
+      "vs_chance": "8.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "1",
+      "file_acc@1": "16.0",
+      "group": "Pressure",
+      "is_single_channel": "true",
+      "vs_chance": "8.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "1",
+      "file_acc@1": "16.0",
+      "group": "Altitude",
+      "is_single_channel": "true",
+      "vs_chance": "8.0x"
+    },
+    {
+      "benchmark_retained": "true",
+      "channel_count": "1",
+      "file_acc@1": "12.0",
+      "group": "C2H5OH",
+      "is_single_channel": "true",
+      "vs_chance": "6.0x"
+    },
+    {
+      "benchmark_retained": "true",
+      "channel_count": "1",
+      "file_acc@1": "12.0",
+      "group": "LPG",
+      "is_single_channel": "true",
+      "vs_chance": "6.0x"
+    },
+    {
+      "benchmark_retained": "true",
+      "channel_count": "1",
+      "file_acc@1": "10.0",
+      "group": "Alcohol",
+      "is_single_channel": "true",
+      "vs_chance": "5.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "1",
+      "file_acc@1": "4.0",
+      "group": "Benzene",
+      "is_single_channel": "true",
+      "vs_chance": "2.0x"
+    },
+    {
+      "benchmark_retained": "false",
+      "channel_count": "1",
+      "file_acc@1": "4.0",
+      "group": "Temperature",
+      "is_single_channel": "true",
+      "vs_chance": "2.0x"
+    }
+  ],
+  "test_files": 50,
+  "train_files": 250
+}

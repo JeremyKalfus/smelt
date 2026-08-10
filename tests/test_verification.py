@@ -103,7 +103,7 @@ def test_saved_prediction_recompute_matches_metrics(tmp_path: Path) -> None:
 
 def test_prepare_verification_inputs_builds_expected_shapes() -> None:
     config = make_config()
-    data_root = Path("/Users/jeremykalfus/CodingProjects/smelt/tests/fixtures/smellnet_base_valid")
+    data_root = Path(__file__).parent / "fixtures" / "smellnet_base_valid"
     dataset = load_base_sensor_dataset(data_root)
 
     prepared = prepare_verification_inputs(dataset, config)
@@ -115,7 +115,7 @@ def test_prepare_verification_inputs_builds_expected_shapes() -> None:
 
 def test_leakage_audit_reports_no_overlap_on_valid_fixture() -> None:
     config = make_config()
-    data_root = Path("/Users/jeremykalfus/CodingProjects/smelt/tests/fixtures/smellnet_base_valid")
+    data_root = Path(__file__).parent / "fixtures" / "smellnet_base_valid"
     dataset = load_base_sensor_dataset(data_root)
 
     audit = build_leakage_audit(dataset, config)

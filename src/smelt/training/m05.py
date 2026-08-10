@@ -75,6 +75,18 @@ M05_DEFAULT_BANK_CONFIGS = (
     "configs/moonshot-enhanced/m04_hinception_all12_diff_seed29.yaml",
     "configs/moonshot-enhanced/m04_patch_transformer_all12_diff_seed19.yaml",
 )
+M05B_DEFAULT_BANK_CONFIGS = (
+    "configs/moonshot-enhanced/m05b_cnn_benchmark6_diff_locked_seed13.yaml",
+    "configs/moonshot-enhanced/m05b_cnn_benchmark6_diff_locked_seed42.yaml",
+    "configs/moonshot-enhanced/m05b_cnn_benchmark6_diff_locked_seed7.yaml",
+    "configs/moonshot-enhanced/m05b_deep_temporal_resnet_benchmark6_diff_locked.yaml",
+    "configs/moonshot-enhanced/m05b_cnn_benchmark6_diff_locked_seed101.yaml",
+    "configs/moonshot-enhanced/m05b_cnn_benchmark6_diff_locked_seed202.yaml",
+    "configs/moonshot-enhanced/m05b_deep_temporal_resnet_benchmark6_diff_seed7.yaml",
+    "configs/moonshot-enhanced/m05b_hinception_benchmark6_diff_seed17.yaml",
+    "configs/moonshot-enhanced/m05b_hinception_benchmark6_diff_seed29.yaml",
+    "configs/moonshot-enhanced/m05b_patch_transformer_benchmark6_diff_seed19.yaml",
+)
 M05_FOLD_COUNT = 5
 M05_ENSEMBLE_SELECTION_SOURCE = "cv_oof_only"
 
@@ -169,8 +181,14 @@ def build_default_m05_bank_config_paths() -> tuple[Path, ...]:
     return tuple(Path(value).resolve() for value in M05_DEFAULT_BANK_CONFIGS)
 
 
+def build_default_m05b_bank_config_paths() -> tuple[Path, ...]:
+    return tuple(Path(value).resolve() for value in M05B_DEFAULT_BANK_CONFIGS)
+
+
 def load_m05_bank_entries(
     config_paths: tuple[Path, ...],
+    *,
+    required_channel_set: str = "all12",
 ) -> tuple[M05BankEntry, ...]:
     if not config_paths:
         raise M05Error("m05 requires at least one bank config path")
@@ -181,8 +199,8 @@ def load_m05_bank_entries(
     shared_class_vocab_manifest_path: str | None = None
     for stable_order, config_path in enumerate(config_paths):
         config = load_moonshot_run_config(config_path)
-        if config.channel_set != "all12":
-            raise M05Error(f"{config_path} is not an all12 config")
+        if config.channel_set != required_channel_set:
+            raise M05Error(f"{config_path} is not a {required_channel_set} config")
         if config.diff_period != 25:
             raise M05Error(f"{config_path} does not preserve g=25")
         if config.window_size != 100:
@@ -375,6 +393,7 @@ def run_fold_model_cv(
     fold: Any,
     category_mapping: dict[str, str],
     output_root: Path,
+    protocol_id: str = "m05",
 ) -> FoldModelResult:
     config = entry.config
     set_seed(config.seed)
@@ -388,7 +407,7 @@ def run_fold_model_cv(
         config=config,
         validation_files_per_class=1,
         view_manifest_updates={
-            "protocol": "m05",
+            "protocol": protocol_id,
             "split_strategy": "grouped_5_fold_cv",
             "fold_index": fold.fold_index,
             "fold_count": fold.fold_count,
@@ -396,15 +415,17 @@ def run_fold_model_cv(
     )
     run_payload = {
         **config.to_dict(),
-        "protocol": "m05",
+        "protocol": protocol_id,
         "fold_index": fold.fold_index,
         "fold_count": fold.fold_count,
         "test_evaluation_enabled": False,
     }
     fold_output_root = output_root / f"fold_{fold.fold_index}" / "runs"
+    # keep this name short: member_id is already two levels up in fold_output_root,
+    # and the full tree must stay under the Windows 260-char path limit.
     run_dir = build_run_dir(
         fold_output_root,
-        f"{entry.member_id}_m05_fold{fold.fold_index}",
+        f"{protocol_id}_fold{fold.fold_index}",
         run_payload,
     )
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -494,14 +515,14 @@ def run_fold_model_cv(
             result=file_result,
             methods_summary={
                 "track": "moonshot-enhanced-setting",
-                "protocol": "m05",
+                "protocol": protocol_id,
                 "split": "cv_validation",
                 "selection_source": M05_ENSEMBLE_SELECTION_SOURCE,
                 "candidate_method": aggregator,
                 "member_id": entry.member_id,
                 "fold_index": fold.fold_index,
-                "view_mode": "diff_all12",
-                "channel_set": "all12",
+                "view_mode": f"diff_{config.channel_set}",
+                "channel_set": config.channel_set,
             },
         )
         candidate_results[aggregator] = FoldAggregatorResult(
@@ -516,9 +537,9 @@ def run_fold_model_cv(
             validation_report_paths=report_paths.to_dict(),
         )
 
-    fold_selection_path = run_dir / "m05_fold_selection.json"
+    fold_selection_path = run_dir / f"{protocol_id}_fold_selection.json"
     selection_payload = {
-        "protocol": "m05",
+        "protocol": protocol_id,
         "fold_index": fold.fold_index,
         "fold_count": fold.fold_count,
         "member_id": entry.member_id,
@@ -572,7 +593,7 @@ def run_fold_model_cv(
         run_dir / "run_metadata.json",
         {
             "track": "moonshot-enhanced-setting",
-            "protocol": "m05",
+            "protocol": protocol_id,
             "mode": "grouped_cv_fold_model",
             "member_id": entry.member_id,
             "model_family": config.model_name,
@@ -626,6 +647,7 @@ def build_model_cv_summary(
     fold_results: tuple[FoldModelResult, ...],
     category_mapping: dict[str, str],
     output_root: Path,
+    protocol_id: str = "m05",
 ) -> ModelCvSummary:
     aggregator_summaries: dict[str, AggregatorCvSummary] = {}
     aggregator_order = tuple(entry.config.candidate_file_aggregators)
@@ -652,13 +674,13 @@ def build_model_cv_summary(
             result=oof_result,
             methods_summary={
                 "track": "moonshot-enhanced-setting",
-                "protocol": "m05",
+                "protocol": protocol_id,
                 "split": "cv_oof",
                 "selection_source": M05_ENSEMBLE_SELECTION_SOURCE,
                 "member_id": entry.member_id,
                 "candidate_method": aggregator,
-                "view_mode": "diff_all12",
-                "channel_set": "all12",
+                "view_mode": f"diff_{entry.config.channel_set}",
+                "channel_set": entry.config.channel_set,
             },
         )
         acc_values = np.asarray(
@@ -932,6 +954,7 @@ def run_full_refit_member(
     dataset: BaseSensorDataset,
     category_mapping: dict[str, str],
     output_root: Path,
+    protocol_id: str = "m05",
 ) -> RefitMemberResult:
     config = plan.config
     set_seed(config.seed)
@@ -945,7 +968,7 @@ def run_full_refit_member(
         config=config,
         validation_files_per_class=0,
         view_manifest_updates={
-            "protocol": "m05",
+            "protocol": protocol_id,
             "split_strategy": "full_train_refit",
             "selection_source": M05_ENSEMBLE_SELECTION_SOURCE,
             "frozen_epoch_budget": plan.epoch_budget,
@@ -954,12 +977,16 @@ def run_full_refit_member(
     )
     refit_payload = {
         **config.to_dict(),
-        "protocol": "m05",
+        "protocol": protocol_id,
         "split_strategy": "full_train_refit",
         "frozen_epoch_budget": plan.epoch_budget,
         "frozen_aggregator": plan.selected_aggregator,
     }
-    run_dir = build_run_dir(output_root, f"{plan.member_id}_m05_full_refit", refit_payload)
+    run_dir = build_run_dir(
+        output_root,
+        f"{plan.member_id}_{protocol_id}_full_refit",
+        refit_payload,
+    )
     run_dir.mkdir(parents=True, exist_ok=False)
     model, architecture_summary = build_moonshot_model(
         config=config,
@@ -1031,7 +1058,7 @@ def run_full_refit_member(
         run_dir / "run_metadata.json",
         {
             "track": "moonshot-enhanced-setting",
-            "protocol": "m05",
+            "protocol": protocol_id,
             "mode": "full_train_refit_member",
             "member_id": plan.member_id,
             "model_family": config.model_name,
@@ -1057,7 +1084,11 @@ def run_full_refit_member(
     )
 
 
-def load_current_tracked_rows(table_root: Path) -> list[dict[str, str]]:
+def load_current_tracked_rows(
+    table_root: Path,
+    *,
+    include_m05: bool = False,
+) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     m01c_path = table_root / "m01c_seed_summary.json"
     if m01c_path.is_file():
@@ -1103,6 +1134,25 @@ def load_current_tracked_rows(table_root: Path) -> list[dict[str, str]]:
                 "file_macro_f1": row.get("ensemble_file_macro_f1", ""),
             }
         )
+    if include_m05:
+        m05_path = table_root / "m05_final_test.json"
+        if m05_path.is_file():
+            payload = json.loads(m05_path.read_text(encoding="utf-8"))
+            row = payload["rows"][0]
+            rows.append(
+                {
+                    "protocol_id": "m05",
+                    "selection_protocol": (
+                        "grouped 5-fold cv/oof search, frozen aggregator + epoch budget, "
+                        "single final test"
+                    ),
+                    "official_test_hygiene": (
+                        "no candidate-level official-test metrics before finalization"
+                    ),
+                    "file_acc@1": row.get("file_acc@1", ""),
+                    "file_macro_f1": row.get("file_macro_f1", ""),
+                }
+            )
     return rows
 
 
@@ -1113,6 +1163,7 @@ def run_m05_cv_search(
     fold_manifest: Any,
     category_mapping: dict[str, str],
     output_root: Path,
+    protocol_id: str = "m05",
 ) -> tuple[dict[str, ModelCvSummary], dict[str, Any], dict[str, Any]]:
     summaries: dict[str, ModelCvSummary] = {}
     cv_root = output_root / "cv"
@@ -1124,6 +1175,7 @@ def run_m05_cv_search(
                 fold=fold,
                 category_mapping=category_mapping,
                 output_root=cv_root / "fold_runs" / entry.member_id,
+                protocol_id=protocol_id,
             )
             for fold in fold_manifest.folds
         )
@@ -1132,6 +1184,7 @@ def run_m05_cv_search(
             fold_results=fold_results,
             category_mapping=category_mapping,
             output_root=cv_root / "model_bank",
+            protocol_id=protocol_id,
         )
     validation_bundles = {
         member_id: summary.selected_summary.oof_score_bundle
@@ -1154,8 +1207,10 @@ def run_m05_protocol(
     config_paths: tuple[Path, ...],
     output_root: Path,
     table_root: Path,
+    protocol_id: str = "m05",
+    required_channel_set: str = "all12",
 ) -> dict[str, Any]:
-    entries = load_m05_bank_entries(config_paths)
+    entries = load_m05_bank_entries(config_paths, required_channel_set=required_channel_set)
     shared_category_map = Path(entries[0].config.category_map_path).resolve()
     shared_class_vocab_manifest = Path(entries[0].config.class_vocab_manifest_path).resolve()
     validate_required_reference(shared_category_map)
@@ -1171,27 +1226,27 @@ def run_m05_protocol(
     duplicate_audit = build_m05_duplicate_audit(dataset=dataset, fold_manifest=fold_manifest)
 
     run_payload = {
-        "protocol": "m05",
+        "protocol": protocol_id,
         "fold_count": M05_FOLD_COUNT,
         "bank_config_paths": [str(path) for path in config_paths],
-        "channel_set": "all12",
+        "channel_set": required_channel_set,
         "diff_period": 25,
         "window_size": 100,
         "stride": 50,
     }
-    run_dir = build_run_dir(output_root, "m05_grouped_cv_refit", run_payload)
+    run_dir = build_run_dir(output_root, f"{protocol_id}_grouped_cv_refit", run_payload)
     run_dir.mkdir(parents=True, exist_ok=False)
     table_root.mkdir(parents=True, exist_ok=True)
 
-    fold_manifest_path = table_root / "m05_fold_manifest.json"
-    duplicate_audit_path = table_root / "m05_duplicate_audit.json"
+    fold_manifest_path = table_root / f"{protocol_id}_fold_manifest.json"
+    duplicate_audit_path = table_root / f"{protocol_id}_duplicate_audit.json"
     write_json(fold_manifest_path, fold_manifest.to_dict())
     write_json(duplicate_audit_path, duplicate_audit)
-    write_json(run_dir / "m05_fold_manifest.json", fold_manifest.to_dict())
-    write_json(run_dir / "m05_duplicate_audit.json", duplicate_audit)
+    write_json(run_dir / f"{protocol_id}_fold_manifest.json", fold_manifest.to_dict())
+    write_json(run_dir / f"{protocol_id}_duplicate_audit.json", duplicate_audit)
     if not duplicate_audit["passed"]:
         raise M05Error(
-            "m05 duplicate-content audit failed with "
+            f"{protocol_id} duplicate-content audit failed with "
             f"{duplicate_audit['collision_count']} collisions"
         )
 
@@ -1201,6 +1256,7 @@ def run_m05_protocol(
         fold_manifest=fold_manifest,
         category_mapping=category_mapping,
         output_root=run_dir,
+        protocol_id=protocol_id,
     )
     selected_method = str(selection_payload["selected_method"])
     selected_member_ids = tuple(str(value) for value in selection_payload["selected_member_ids"])
@@ -1215,17 +1271,17 @@ def run_m05_protocol(
         selected_method=selected_method,
     )
 
-    model_bank_csv = table_root / "m05_cv_model_bank.csv"
-    model_bank_json = table_root / "m05_cv_model_bank.json"
-    ensemble_selection_csv = table_root / "m05_cv_ensemble_selection.csv"
-    ensemble_selection_json = table_root / "m05_cv_ensemble_selection.json"
-    search_summary_csv = table_root / "m05_cv_search_summary.csv"
-    search_summary_json = table_root / "m05_cv_search_summary.json"
+    model_bank_csv = table_root / f"{protocol_id}_cv_model_bank.csv"
+    model_bank_json = table_root / f"{protocol_id}_cv_model_bank.json"
+    ensemble_selection_csv = table_root / f"{protocol_id}_cv_ensemble_selection.csv"
+    ensemble_selection_json = table_root / f"{protocol_id}_cv_ensemble_selection.json"
+    search_summary_csv = table_root / f"{protocol_id}_cv_search_summary.csv"
+    search_summary_json = table_root / f"{protocol_id}_cv_search_summary.json"
 
     write_dict_rows_csv(model_bank_csv, model_bank_rows)
     write_json(model_bank_json, {"rows": model_bank_rows})
-    write_dict_rows_csv(run_dir / "m05_cv_model_bank.csv", model_bank_rows)
-    write_json(run_dir / "m05_cv_model_bank.json", {"rows": model_bank_rows})
+    write_dict_rows_csv(run_dir / f"{protocol_id}_cv_model_bank.csv", model_bank_rows)
+    write_json(run_dir / f"{protocol_id}_cv_model_bank.json", {"rows": model_bank_rows})
     selected_candidate = candidates[selected_method]
     write_dict_rows_csv(
         ensemble_selection_csv,
@@ -1246,7 +1302,7 @@ def run_m05_protocol(
     write_dict_rows_csv(search_summary_csv, ensemble_rows)
     write_json(search_summary_json, {"rows": ensemble_rows})
     write_dict_rows_csv(
-        run_dir / "m05_cv_ensemble_selection.csv",
+        run_dir / f"{protocol_id}_cv_ensemble_selection.csv",
         [
             {
                 "selected_method": selected_method,
@@ -1260,9 +1316,9 @@ def run_m05_protocol(
             }
         ],
     )
-    write_json(run_dir / "m05_cv_ensemble_selection.json", selection_payload)
-    write_dict_rows_csv(run_dir / "m05_cv_search_summary.csv", ensemble_rows)
-    write_json(run_dir / "m05_cv_search_summary.json", {"rows": ensemble_rows})
+    write_json(run_dir / f"{protocol_id}_cv_ensemble_selection.json", selection_payload)
+    write_dict_rows_csv(run_dir / f"{protocol_id}_cv_search_summary.csv", ensemble_rows)
+    write_json(run_dir / f"{protocol_id}_cv_search_summary.json", {"rows": ensemble_rows})
 
     refit_plan = build_m05_refit_plan(
         summaries=summaries,
@@ -1270,7 +1326,7 @@ def run_m05_protocol(
         selected_member_ids=selected_member_ids,
         selected_weights=selected_weights,
     )
-    refit_selection_path = run_dir / "m05_refit_plan.json"
+    refit_selection_path = run_dir / f"{protocol_id}_refit_plan.json"
     write_json(
         refit_selection_path,
         {
@@ -1296,6 +1352,7 @@ def run_m05_protocol(
             dataset=dataset,
             category_mapping=category_mapping,
             output_root=run_dir / "full_train_refit",
+            protocol_id=protocol_id,
         )
         for plan in refit_plan
     )
@@ -1315,7 +1372,7 @@ def run_m05_protocol(
         result=final_result,
         methods_summary={
             "track": "moonshot-enhanced-setting",
-            "protocol": "m05",
+            "protocol": protocol_id,
             "split": "official_test",
             "selection_source": M05_ENSEMBLE_SELECTION_SOURCE,
             "selected_method": selected_method,
@@ -1324,7 +1381,7 @@ def run_m05_protocol(
     )
 
     final_row = {
-        "protocol_id": "m05",
+        "protocol_id": protocol_id,
         "selected_method": selected_method,
         "selected_member_ids": json.dumps(list(selected_member_ids)),
         "selected_weights": json.dumps(list(selected_weights)),
@@ -1338,17 +1395,17 @@ def run_m05_protocol(
         "per_category_accuracy_csv": final_report_paths.per_category_accuracy_csv,
         "per_file_predictions_csv": final_report_paths.per_file_predictions_csv,
     }
-    final_csv = table_root / "m05_final_test.csv"
-    final_json = table_root / "m05_final_test.json"
+    final_csv = table_root / f"{protocol_id}_final_test.csv"
+    final_json = table_root / f"{protocol_id}_final_test.json"
     write_dict_rows_csv(final_csv, [final_row])
     write_json(final_json, {"rows": [final_row]})
-    write_dict_rows_csv(run_dir / "m05_final_test.csv", [final_row])
-    write_json(run_dir / "m05_final_test.json", {"rows": [final_row]})
+    write_dict_rows_csv(run_dir / f"{protocol_id}_final_test.csv", [final_row])
+    write_json(run_dir / f"{protocol_id}_final_test.json", {"rows": [final_row]})
 
-    scorecard_rows = load_current_tracked_rows(table_root)
+    scorecard_rows = load_current_tracked_rows(table_root, include_m05=protocol_id != "m05")
     scorecard_rows.append(
         {
-            "protocol_id": "m05",
+            "protocol_id": protocol_id,
             "selection_protocol": (
                 "grouped 5-fold cv/oof search, frozen aggregator + epoch budget, single final test"
             ),
@@ -1357,18 +1414,18 @@ def run_m05_protocol(
             "file_macro_f1": str(final_result.metrics.f1_macro),
         }
     )
-    scorecard_csv = table_root / "m05_scorecard.csv"
-    scorecard_json = table_root / "m05_scorecard.json"
+    scorecard_csv = table_root / f"{protocol_id}_scorecard.csv"
+    scorecard_json = table_root / f"{protocol_id}_scorecard.json"
     write_dict_rows_csv(scorecard_csv, scorecard_rows)
     write_json(scorecard_json, {"rows": scorecard_rows})
-    write_dict_rows_csv(run_dir / "m05_scorecard.csv", scorecard_rows)
-    write_json(run_dir / "m05_scorecard.json", {"rows": scorecard_rows})
+    write_dict_rows_csv(run_dir / f"{protocol_id}_scorecard.csv", scorecard_rows)
+    write_json(run_dir / f"{protocol_id}_scorecard.json", {"rows": scorecard_rows})
 
     write_run_metadata(
         run_dir / "run_metadata.json",
         {
             "track": "moonshot-enhanced-setting",
-            "protocol": "m05",
+            "protocol": protocol_id,
             "mode": "grouped_cv_search_then_full_train_refit",
             "selection_source": M05_ENSEMBLE_SELECTION_SOURCE,
             "selected_method": selected_method,

@@ -1,0 +1,19 @@
+{
+  "rows": [
+    {
+      "confusion_matrix_csv": "C:\\smelt_runs\\m05b_grouped_cv_refit-20260810-011944-8b717362\\final_test\\weighted_probabilities_all\\confusion_matrix.csv",
+      "file_acc@1": "78.0",
+      "file_acc@5": "94.0",
+      "file_macro_f1": "73.46666666666667",
+      "file_macro_precision": "71.5",
+      "file_macro_recall": "78.0",
+      "per_category_accuracy_csv": "C:\\smelt_runs\\m05b_grouped_cv_refit-20260810-011944-8b717362\\final_test\\weighted_probabilities_all\\per_category_accuracy.csv",
+      "per_file_predictions_csv": "C:\\smelt_runs\\m05b_grouped_cv_refit-20260810-011944-8b717362\\final_test\\weighted_probabilities_all\\per_file_predictions.csv",
+      "protocol_id": "m05b",
+      "selected_member_ids": "[\"m05b_cnn_benchmark6_diff_locked_seed101\", \"m05b_cnn_benchmark6_diff_locked_seed13\", \"m05b_cnn_benchmark6_diff_locked_seed202\", \"m05b_cnn_benchmark6_diff_locked_seed42\", \"m05b_cnn_benchmark6_diff_locked_seed7\", \"m05b_deep_temporal_resnet_benchmark6_diff_locked\", \"m05b_deep_temporal_resnet_benchmark6_diff_seed7\", \"m05b_hinception_benchmark6_diff_seed17\", \"m05b_hinception_benchmark6_diff_seed29\", \"m05b_patch_transformer_benchmark6_diff_seed19\"]",
+      "selected_method": "weighted_probabilities_all",
+      "selected_weights": "[0.10587550901687026, 0.10587550901687026, 0.10762070971495055, 0.10762070971495055, 0.10471204188481675, 0.09773123909249563, 0.09598603839441536, 0.0820244328097731, 0.08551483420593367, 0.10703897614892378]",
+      "summary_json": "C:\\smelt_runs\\m05b_grouped_cv_refit-20260810-011944-8b717362\\final_test\\weighted_probabilities_all\\summary_metrics.json"
+    }
+  ]
+}

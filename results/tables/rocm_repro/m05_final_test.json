@@ -1,0 +1,19 @@
+{
+  "rows": [
+    {
+      "confusion_matrix_csv": "C:\\smelt_runs\\m05_grouped_cv_refit-20260810-040538-56c2b7d7\\final_test\\diversity_greedy_probabilities\\confusion_matrix.csv",
+      "file_acc@1": "86.0",
+      "file_acc@5": "98.0",
+      "file_macro_f1": "82.33333333333333",
+      "file_macro_precision": "80.66666666666666",
+      "file_macro_recall": "86.0",
+      "per_category_accuracy_csv": "C:\\smelt_runs\\m05_grouped_cv_refit-20260810-040538-56c2b7d7\\final_test\\diversity_greedy_probabilities\\per_category_accuracy.csv",
+      "per_file_predictions_csv": "C:\\smelt_runs\\m05_grouped_cv_refit-20260810-040538-56c2b7d7\\final_test\\diversity_greedy_probabilities\\per_file_predictions.csv",
+      "protocol_id": "m05",
+      "selected_member_ids": "[\"m01c_cnn_all12_diff_locked_seed13\", \"m01c_cnn_all12_diff_locked_seed7\", \"m02_deep_temporal_resnet_all12_diff_locked\", \"m04_cnn_all12_diff_locked_seed202\", \"m04_patch_transformer_all12_diff_seed19\"]",
+      "selected_method": "diversity_greedy_probabilities",
+      "selected_weights": "[0.2, 0.2, 0.2, 0.2, 0.2]",
+      "summary_json": "C:\\smelt_runs\\m05_grouped_cv_refit-20260810-040538-56c2b7d7\\final_test\\diversity_greedy_probabilities\\summary_metrics.json"
+    }
+  ]
+}

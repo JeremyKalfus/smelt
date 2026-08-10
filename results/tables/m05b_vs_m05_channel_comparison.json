@@ -1,0 +1,42 @@
+{
+  "paired_comparison": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 17,
+    "both_correct": 36,
+    "both_wrong": 3,
+    "delta_acc@1_all12_minus_benchmark6": 9.999999999999998,
+    "delta_acc@1_ci_lower": -2.0000000000000018,
+    "delta_acc@1_ci_upper": 24.0,
+    "discordant_only_all12_correct": 8,
+    "discordant_only_benchmark6_correct": 3,
+    "interpretation": "delta is the extra-channel contribution under an identical selection protocol; the mcnemar p-value tests whether the discordant pattern is distinguishable from chance on the 50 official test files",
+    "m05_all12_acc@1": 88.0,
+    "m05b_benchmark6_acc@1": 78.0,
+    "mcnemar_exact_two_sided_p": 0.2265625,
+    "n_paired_files": 50
+  },
+  "rows": [
+    {
+      "channel_count": "6",
+      "channel_set": "benchmark6",
+      "file_acc@1": "78.00",
+      "file_acc@1_ci_lower": "66.00",
+      "file_acc@1_ci_upper": "88.00",
+      "file_acc@5": "94.00",
+      "file_macro_f1": "73.47",
+      "n_files": "50",
+      "protocol_id": "m05b"
+    },
+    {
+      "channel_count": "reference",
+      "channel_set": "reference",
+      "file_acc@1": "88.00",
+      "file_acc@1_ci_lower": "78.00",
+      "file_acc@1_ci_upper": "96.00",
+      "file_acc@5": "100.00",
+      "file_macro_f1": "84.67",
+      "n_files": "50",
+      "protocol_id": "m05_all12"
+    }
+  ]
+}

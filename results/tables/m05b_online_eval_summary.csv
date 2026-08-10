@@ -1,0 +1,4 @@
+file_acc@1,file_acc@5,file_macro_f1,n_files,protocol_id,scope
+30.43,56.52,9.60,23,m05b,all_online
+10.00,,,10,m05b,online_nuts
+46.15,,,13,m05b,online_spices

@@ -95,7 +95,7 @@ def load_sensor_file(
     return SensorFileRecord(
         split=split_name,
         class_name=class_name,
-        relative_path=str(csv_path.relative_to(data_root)),
+        relative_path=csv_path.relative_to(data_root).as_posix(),
         absolute_path=str(csv_path.resolve()),
         column_names=header,
         rows=tuple(rows),

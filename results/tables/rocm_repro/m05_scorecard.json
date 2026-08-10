@@ -1,0 +1,11 @@
+{
+  "rows": [
+    {
+      "file_acc@1": "86.0",
+      "file_macro_f1": "82.33333333333333",
+      "official_test_hygiene": "no candidate-level official-test metrics before finalization",
+      "protocol_id": "m05",
+      "selection_protocol": "grouped 5-fold cv/oof search, frozen aggregator + epoch budget, single final test"
+    }
+  ]
+}
