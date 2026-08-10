@@ -1,33 +1,24 @@
 # Smelt
 
-Smelt is a smell-recognition research repo built on top of SMELLNET-BASE. It started as a benchmark-faithful reproduction effort for SCENTFORMER-style baselines and then grew into an enhanced-setting moonshot system that uses all 12 sensor channels, grouped file-level validation, validation-locked file aggregation, and heterogeneous ensembling.
+Smelt is a smell-recognition research repo built on top of SMELLNET-BASE. It started as a benchmark-faithful reproduction effort for SCENTFORMER-style baselines and grew into a protocol-hardened enhanced detector (grouped file-level CV, validation-locked file aggregation, heterogeneous ensembling), plus a set of dataset forensics: channel-quality audits, channel-attribution probes, cross-release verification, and an online-split generalization evaluation.
 
-This README is the repo summary: what was reproduced, what was tried, what failed, what worked, and which numbers are exploratory versus final-definitive.
+This README is the repo summary: what was reproduced, what was tried, what failed, what worked, and which numbers are primary versus extension versus disqualified.
 
 ## TL;DR
 
-- We built a benchmark-faithful `exact-upstream` track and reproduced the sensor-only SMELLNET-BASE baselines closely enough to trust the data path.
-- We built a `research-extension` track for fused/raw/diff variants, stronger backbones, and GC-MS pretrain → fine-tune experiments. Some ideas helped, several did not.
-- The biggest gains came from the `moonshot-enhanced-setting` track:
-  - use all 12 channels instead of the benchmark-retained 6
-  - keep diff-only input
-  - use grouped file-level validation
-  - lock checkpointing and file-level decisions on validation only
-  - use a heterogeneous ensemble chosen on validation only
-- `m05` is the defensible post-audit moonshot protocol:
-  - grouped 5-fold CV over `offline_training`
-  - CV / OOF-only search
-  - no candidate-level official-test metrics during search
-  - freeze the final bank, aggregator behavior, and epoch budgets before refit
-  - refit on full official training, then evaluate the official test at the very end
-- Current final-definitive post-audit result (`m05`):
-  - `88.0` file-level Top-1
-  - `100.0` file-level Top-5
-  - `84.6667` file-level macro-F1
-- Strongest tracked exploratory result (`m04`):
-  - `94.0` file-level Top-1
-  - `100.0` file-level Top-5
-  - `92.0` file-level macro-F1
+- We built a benchmark-faithful `exact-upstream` track and reproduced the sensor-only SMELLNET-BASE baselines closely enough to trust the data path (numbers match the ICLR camera-ready Table 2).
+- **Primary result (`m05b`, post-audit, benchmark-retained 6 channels — apples-to-apples with the public benchmark):**
+  - `78.0` file-level Top-1, `94.0` Top-5, `73.47` macro-F1 on the official test split
+  - vs `66.0` for the reproduced CNN baseline evaluated file-level the same way
+  - paired on the same 50 test files: `+12.0` [95% CI `+4.0, +22.0`], exact McNemar `p = 0.031`, 6–0 discordance
+  - selection calibration: CV/OOF predicted `77.2`, final test gave `78.0`
+- **Research extension (`m05`, same protocol on all 12 raw channels):**
+  - `88.0` file-level Top-1 / `100.0` Top-5 / `84.67` macro-F1
+  - the gain over `m05b` is **not statistically significant** (`+10.0` [CI `−2.0, +24.0`], `p = 0.227`; same-machine rerun `+8.0`, `p = 0.344`)
+  - and disappears entirely on the online real-time split (both ensembles: identical `30.4` overall)
+  - channel attribution: the extra signal is almost entirely the BME680 `Gas_Resistance` channel — the single most informative channel in the dataset (see channel probes below)
+- The protocol for both: grouped 5-fold CV over `offline_training`, CV/OOF-only search, no candidate-level official-test metrics before finalization, frozen refit, single terminal test evaluation.
+- Historical exploratory numbers (`m03` 90.0, `m04` 94.0) are **disqualified as headlines**: their searches had official-test contact. The score staircase 94 → 88 → 78 is leakage and flattering comparisons being squeezed out, not models getting worse.
 
 ## What this repo is trying to do
 
@@ -125,7 +116,7 @@ For SMELLNET-BASE, the paper anchors we used were:
 - CNN, sensor-only, `w=100`, `p=25`: `52.7` Top-1, `85.6` Top-5, `50.5` macro-F1
 - CNN, cross-modal GC-MS, `w=100`, `p=25`: `58.9` Top-1, `88.4` Top-5, `57.0` macro-F1
 
-These are baseline anchors, not claims that this repo exactly reproduces every upstream implementation detail outside the explicitly documented `exact-upstream` path.
+These are baseline anchors, not claims that this repo exactly reproduces every upstream implementation detail outside the explicitly documented `exact-upstream` path. The sensor-only anchors were verified against Table 2 of the ICLR 2026 camera-ready (arXiv 2506.00239); the paper's appendix also documents the channel-dropping rationale (suspected sensor malfunction) that our channel-quality audit confirms quantitatively.
 
 ## Results: exact-upstream / benchmark-faithful
 
@@ -510,19 +501,87 @@ Final official-test metrics after full-train refit:
 - Macro F1: `84.6667`
 
 Interpretation:
-- this is the protocol to use for final claims after the audit
+- this is the protocol to use for 12-channel claims after the audit
 - it landed below `m04` by `6.0` Top-1 points and about `7.33` macro-F1 points
 - the most likely reason is the protocol tightening itself: grouped 5-fold CV and strict search-time test isolation removed the old opportunity to peek through candidate-level official-test outputs
+- cross-platform reproduction: rerunning the full protocol on different hardware/backend (AMD ROCm/Windows vs the original Apple Silicon run) gives `86.0` Top-1 / `82.33` macro-F1 (`results/tables/rocm_repro/`) — a ~2-point backend/seed variance band at n=50
+
+### `m05b`: benchmark6 post-audit protocol (primary apples-to-apples)
+
+`m05b` mirrors the `m05` protocol exactly with one change: the bank is restricted to the
+benchmark-retained 6 channels. This is the primary result, because it is the only enhanced
+number comparable to the public benchmark setting.
+
+Selected CV / OOF ensemble:
+
+- method: `weighted_probabilities_all` over all 10 bank members (with weaker per-model signal
+  at 6 channels, breadth beat the diversity-greedy subset selection that won under all12)
+- CV / OOF selection metrics: `77.2` Top-1, `76.57` macro-F1
+
+Final official-test metrics after full-train refit:
+
+- Top-1: `78.0` (95% bootstrap CI `[66.0, 88.0]`)
+- Top-5: `94.0`
+- Macro-F1: `73.47`
+
+Paired against the reproduced file-level CNN baseline (same channels, same 50 files):
+
+- baseline: `66.0` → `m05b`: `78.0`, delta `+12.0` [CI `+4.0, +22.0`]
+- exact McNemar `p = 0.031`; the detector never misses a file the baseline gets right (6–0)
+
+Paired against `m05` (all12):
+
+- `+10.0` [CI `−2.0, +24.0`], `p = 0.227` (original m05); `+8.0`, `p = 0.344` (same-machine rerun)
+- **not significant at n=50** — no channel-superiority claim is defensible
+
+### Channel forensics and probes
+
+`scripts/smelt_channel_quality_audit.py` (raw 12-column data quality):
+
+- `Benzene` is dead: `32.4%` of raw values are the uint32 overflow sentinel `4294967295`;
+  `222/250` training files are complete flatlines
+- one BME680 unit was frozen for a nine-class recording block (matches App. Table 16 of the
+  upstream paper); `Humidity`/`Gas_Resistance` flatline in ~20% of training files
+- the *retained* `Alcohol` channel also flatlines in `26/250` training and `5/50` test files
+
+`scripts/smelt_channel_signal_probe.py` (per-channel class information, nearest-centroid,
+chance = 2.0):
+
+- `Gas_Resistance` alone: `30.0` — the most informative single channel in the dataset
+  (best retained channel is `NO2` at `22.0`)
+- benchmark6 `54.0` → benchmark6 + `Gas_Resistance` `70.0` → all12 `72.0`: nearly the entire
+  12-channel advantage is that one legitimately chemical sensor
+- recommendation: if a future release restores one channel, restore `Gas_Resistance`
+
+`scripts/smelt_env_barcode_probe.py` (session-leakage test):
+
+- raw absolute environmental levels leak some class identity (ENV4: `32.0`), but the
+  day-held-out split defeats most of it (`Pressure` alone: `8.0`) and the pipeline's
+  differencing reduces ENV4 to `22.0` — environmental leakage cannot explain the 12-channel gap
+
+### Online (real-time) split evaluation
+
+`scripts/smelt_online_eval.py` evaluates the frozen refit ensembles once, 50-way, with zero
+selection contact, on the real-time recordings from the arXiv version of the dataset
+(`online_nuts`: 10 files, `online_spices`: 13 files; present in the archived HF revision only):
+
+- `m05b` (6ch): `30.4` overall — `10.0` nuts, `46.2` spices
+- `m05` (12ch): **identical** `30.4` / `10.0` / `46.2` — the offline all12 advantage does not
+  survive distribution shift
+- arXiv-v1-reported upstream models: `10.7` nuts, `25.4` spices (metric granularity may
+  differ; treat as context, not head-to-head)
 
 ## What actually mattered
 
 ### Things that helped a lot
 
-- all 12 channels instead of the benchmark-retained 6
-- diff-only view instead of fused raw+diff
-- file-level aggregation
+- file-level aggregation (this alone lifts the plain CNN baseline from `55.6` window-level to
+  `66.0` file-level — always compare like with like)
 - validation-locked model and aggregator selection
 - heterogeneous ensembling
+- diff-only view instead of fused raw+diff
+- of the extra channels, effectively one: `Gas_Resistance` (the all12-vs-benchmark6 delta is
+  not significant and vanishes online; see channel probes)
 
 ### Things that did not help
 
@@ -594,15 +653,23 @@ pytest -q
 python -m compileall src tests scripts
 ```
 
-## Data root
+## Data root and dataset revisions
 
 Most data-backed commands expect `SMELT_DATA_ROOT` to point at the SMELLNET-BASE data directory.
 
-Example:
+Important: the public `DeweiFeng/smell-net` dataset was reorganized on 2026-04-13. The current
+release (`base_data/training|testing`) contains **only the 6 benchmark channels**. The original
+12-column tree (`data/offline_training|offline_testing`), plus the online split and GC-MS
+extras, lives at archived revision `71bcae740b88`:
 
 ```bash
-export SMELT_DATA_ROOT="$HOME/.cache/huggingface/hub/datasets--DeweiFeng--smell-net/snapshots/<snapshot-id>/data"
+python -c "from huggingface_hub import snapshot_download; print(snapshot_download(repo_id='DeweiFeng/smell-net', repo_type='dataset', revision='71bcae740b88', allow_patterns=['data/offline_training/*','data/offline_testing/*','data/online_nuts/*','data/online_spices/*']))"
+export SMELT_DATA_ROOT="<printed-snapshot-path>/data"
 ```
+
+We verified all 300 base recordings are content-identical on the 6 retained channels across the
+two releases, so `m05b` and the exact-upstream track reproduce from either revision; the all12
+`m05` extension requires the archived revision.
 
 ## Useful entry points
 
@@ -629,10 +696,36 @@ python -m smelt.training.run_moonshot \
 python -m smelt.training.run_m04_ensemble ...
 ```
 
-- post-audit grouped-cv protocol:
+- post-audit grouped-cv protocol, benchmark-retained 6 channels (primary):
+
+```bash
+python -m smelt.training.run_m05b
+```
+
+- post-audit grouped-cv protocol, all 12 channels (research extension):
 
 ```bash
 python -m smelt.training.run_m05
+```
+
+- channel forensics and probes:
+
+```bash
+python scripts/smelt_channel_quality_audit.py --data-root "$SMELT_DATA_ROOT"
+python scripts/smelt_channel_signal_probe.py --data-root "$SMELT_DATA_ROOT"
+python scripts/smelt_env_barcode_probe.py --data-root "$SMELT_DATA_ROOT"
+```
+
+- paired protocol comparison (bootstrap CIs + exact McNemar from saved predictions):
+
+```bash
+python scripts/smelt_m05b_analysis.py
+```
+
+- online-split evaluation of a frozen protocol run:
+
+```bash
+python scripts/smelt_online_eval.py --run-dir <protocol-run-dir> --protocol-id m05b --data-root "$SMELT_DATA_ROOT"
 ```
 
 - verification-only export pass:
@@ -651,48 +744,55 @@ python scripts/smelt_verification_export.py \
 
 If you want the current headline artifacts first:
 
-- final-definitive `m05` official-test summary:
-  - [results/tables/m05_final_test.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_final_test.json)
-- final-definitive `m05` scorecard versus earlier protocols:
-  - [results/tables/m05_scorecard.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_scorecard.json)
-- `m05` CV / OOF ensemble-selection details:
-  - [results/tables/m05_cv_ensemble_selection.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m05_cv_ensemble_selection.json)
-- current exploratory `m04` comparison:
-  - [results/tables/m04_final_comparison.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m04_final_comparison.json)
-- locked moonshot baseline summary:
-  - [results/tables/m01c_seed_summary.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/m01c_seed_summary.json)
+- collaboration mini-writeup (full narrative with all numbers):
+  - [docs/research-extension/miniwriteup_dewei.md](docs/research-extension/miniwriteup_dewei.md)
+- primary `m05b` official-test summary:
+  - [results/tables/m05b_final_test.json](results/tables/m05b_final_test.json)
+- headline paired test (m05b vs file-level baseline, same channels):
+  - [results/tables/m05b_vs_exact_upstream_baseline_comparison.json](results/tables/m05b_vs_exact_upstream_baseline_comparison.json)
+- channel comparison (m05b vs m05, non-significant):
+  - [results/tables/m05b_vs_m05_channel_comparison.json](results/tables/m05b_vs_m05_channel_comparison.json)
+- protocol scorecard (m01c → m03 → m04 → m05 → m05b with hygiene notes):
+  - [results/tables/m05b_scorecard.csv](results/tables/m05b_scorecard.csv)
+- channel forensics:
+  - [results/tables/channel_quality_audit.csv](results/tables/channel_quality_audit.csv)
+  - [results/tables/channel_signal_probe.csv](results/tables/channel_signal_probe.csv)
+  - [results/tables/env_barcode_probe.csv](results/tables/env_barcode_probe.csv)
+- online-split generalization:
+  - [results/tables/m05b_online_eval_summary.json](results/tables/m05b_online_eval_summary.json)
+- 12-channel extension and same-machine reproduction:
+  - [results/tables/m05_final_test.json](results/tables/m05_final_test.json)
+  - [results/tables/rocm_repro/m05_final_test.json](results/tables/rocm_repro/m05_final_test.json)
 
 If you want the verification and paper-ready exports first:
 
 - verification inventory:
-  - [results/tables/verification_inventory.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_inventory.json)
+  - [results/tables/verification_inventory.json](results/tables/verification_inventory.json)
 - exact-upstream verification:
-  - [results/tables/verification_exact_upstream.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_exact_upstream.json)
+  - [results/tables/verification_exact_upstream.json](results/tables/verification_exact_upstream.json)
 - moonshot protocol verification:
-  - [results/tables/verification_moonshot_protocol.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_moonshot_protocol.json)
+  - [results/tables/verification_moonshot_protocol.json](results/tables/verification_moonshot_protocol.json)
 - leakage and selection audit:
-  - [results/tables/verification_leakage_selection_audit.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_leakage_selection_audit.json)
+  - [results/tables/verification_leakage_selection_audit.json](results/tables/verification_leakage_selection_audit.json)
 - bootstrap confidence intervals:
-  - [results/tables/verification_bootstrap_ci.json](/Users/jeremykalfus/CodingProjects/smelt/results/tables/verification_bootstrap_ci.json)
+  - [results/tables/verification_bootstrap_ci.json](results/tables/verification_bootstrap_ci.json)
 - paper table inputs:
-  - [results/tables/paper_baseline_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_baseline_table.csv)
-  - [results/tables/paper_ablation_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_ablation_table.csv)
-  - [results/tables/paper_main_results_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_main_results_table.csv)
-  - [results/tables/paper_diversity_table.csv](/Users/jeremykalfus/CodingProjects/smelt/results/tables/paper_diversity_table.csv)
+  - [results/tables/paper_baseline_table.csv](results/tables/paper_baseline_table.csv)
+  - [results/tables/paper_ablation_table.csv](results/tables/paper_ablation_table.csv)
+  - [results/tables/paper_main_results_table.csv](results/tables/paper_main_results_table.csv)
+  - [results/tables/paper_diversity_table.csv](results/tables/paper_diversity_table.csv)
 
 ## Bottom line
 
-If you care about benchmark-faithful comparison, use the `exact-upstream` track.
+If you care about benchmark-faithful comparison, use the `exact-upstream` track for
+window-level numbers and `m05b` for the enhanced detector:
 
-If you care about final-definitive moonshot claims, use `m05`:
+- `m05b`: `78.0` file-level Top-1 [CI `66.0, 88.0`], `94.0` Top-5, `73.47` macro-F1
+- `+12.0` over the file-level baseline on identical channels/files/metric, `p = 0.031`
 
-- `88.0` file-level Top-1
-- `100.0` file-level Top-5
-- `84.6667` file-level macro-F1
+If you care about the 12-channel research extension, use `m05` (`88.0` / `100.0` / `84.67`),
+with two caveats stated up front: the gain over `m05b` is not statistically significant at
+n=50, and it requires the archived 12-column dataset revision.
 
-If you care about the strongest tracked exploratory number in this repo, the current `m04`
-moonshot heterogeneous ensemble is:
-
-- `94.0` file-level Top-1
-- `100.0` file-level Top-5
-- `92.0` file-level macro-F1
+Historical exploratory numbers (`m03` 90.0, `m04` 94.0) are retained in the tables for
+transparency but are not claimable: their searches had official-test contact.
